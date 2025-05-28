@@ -13,9 +13,19 @@ CONFIG_FILE = os.path.join(SCRIPT_DIR, "viewport_config.json")
 
 def fetch_camera_list():
     try:
-        subprocess.run(["python3", "get_streams.py"], cwd=SCRIPT_DIR, check=True)
+        result = subprocess.run(
+            ["python3", "get_streams.py"],
+            cwd=SCRIPT_DIR,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            check=True,
+            text=True
+        )
+        print(result.stdout)
     except subprocess.CalledProcessError as e:
-        messagebox.showwarning("Camera Fetch Error", f"Could not update camera list:\n{e}")
+        print(f"[WARN] get_streams.py failed:\n{e.output}")
+        # Silently fallback to cached camera list
+        # messagebox.showwarning("Camera Fetch Error", "Could not update camera list. Using cached data.")
 
 
 # Fetch camera list
