@@ -13,39 +13,37 @@ echo "[INFO] Installing required system packages..."
 sudo apt install -y \
   python3 \
   python3-pip \
-  python3-venv \
+  python3-tk \
   ffmpeg \
   mpv \
   jq \
   libnss3-tools \
   libgl1-mesa-glx \
-  libpulse0
+  libpulse0 \
+  libegl1 \
+  x11-utils \
+  xdotool \
+  git
 
-# Create and activate virtual environment
-echo "[INFO] Creating Python virtual environment..."
-python3 -m venv .venv
-source .venv/bin/activate
+echo "[INFO] Installing Python packages globally with --break-system-packages..."
+pip3 install --break-system-packages \
+  python-dotenv \
+  requests \
+  uiprotect
 
-# Install Python dependencies
-echo "[INFO] Installing Python packages..."
-pip install --upgrade pip
-pip install python-dotenv requests
-
-# Prompt user for .env configuration
-echo "[INFO] Setting up .env configuration..."
-
-read -p "Enter your UniFi Protect host (e.g., https://192.168.5.10): " UNIFI_HOST
-read -p "Enter your UniFi Protect username: " USERNAME
-read -s -p "Enter your UniFi Protect password: " PASSWORD
-echo
-
-cat > .env <<EOF
-UNIFI_HOST=$UNIFI_HOST
-USERNAME=$USERNAME
-PASSWORD=$PASSWORD
+# Create .env if not present
+if [ ! -f .env ]; then
+  echo "[INFO] Creating .env template..."
+  cat <<EOF > .env
+# UniFi Protect API credentials
+UFP_HOST=https://192.168.5.10
+UFP_USERNAME=your_username
+UFP_PASSWORD=your_password
 EOF
-
-echo "[INFO] .env file created."
+  echo "[INFO] .env file created. Please edit it with your UniFi Protect login info."
+else
+  echo "[INFO] .env file already exists, skipping creation."
+fi
 
 # Add .env to .gitignore if missing
 if [ ! -f .gitignore ]; then
@@ -58,5 +56,4 @@ if ! grep -q "^.env$" .gitignore; then
 fi
 
 echo "[SUCCESS] Setup complete. You can now run:"
-echo "  source .venv/bin/activate"
-echo "  python get_streams.py"
+echo "  python3 get_streams.py"
