@@ -1,10 +1,10 @@
 # overlay_box.py
-# Draws a status indicator overlay per stream tile window
+# Draws a red border overlay on a stream tile if there's a failure
+
 import sys
-import time
 import tkinter as tk
 
-# Usage: python3 overlay_box.py tile_0_0 green
+# Usage: python3 overlay_box.py <window_title> red
 if len(sys.argv) != 3:
     print("Usage: overlay_box.py <window_title> <color>")
     sys.exit(1)
@@ -12,31 +12,22 @@ if len(sys.argv) != 3:
 window_title = sys.argv[1]
 color = sys.argv[2].lower()
 
-if color not in ("green", "yellow", "red"):
-    color = "yellow"
+if color != "red":
+    sys.exit(0)  # Don't show overlay unless red
 
-overlay_colors = {
-    "green": "#00FF00",
-    "yellow": "#FFFF00",
-    "red": "#FF0000"
-}
-
-# Create a top-left transparent window
 def main():
     root = tk.Tk()
     root.title(f"overlay_{window_title}")
-    root.geometry("60x30+10+10")  # Size and position (top-left)
+    root.geometry("200x100+50+50")  # Optional: dynamically place later
     root.attributes("-topmost", True)
-    root.attributes("-alpha", 0.6)
-    root.configure(bg=overlay_colors[color])
+    root.attributes("-alpha", 0.0)  # Fully transparent base window
     root.overrideredirect(True)
 
-    canvas = tk.Canvas(root, bg=overlay_colors[color], highlightthickness=0)
-    canvas.pack(fill="both", expand=True)
-    canvas.create_text(30, 15, text=color.upper(), fill="black", font=("Arial", 10, "bold"))
+    canvas = tk.Canvas(root, width=200, height=100, highlightthickness=4, highlightbackground="#FF0000")
+    canvas.pack()
 
-    # Auto-close after 5 seconds unless manually restarted
-    root.after(5000, root.destroy)
+    # Auto-close after 10 seconds unless refreshed
+    root.after(10000, root.destroy)
     root.mainloop()
 
 if __name__ == "__main__":
