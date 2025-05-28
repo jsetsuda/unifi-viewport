@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import os
 import time
 import json
@@ -7,44 +6,36 @@ import subprocess
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-CAMERA_FILE = "camera_urls.json"
-CONFIG_FILE = "viewport_config.json"
-WORKDIR = "/home/viewport/unifi-viewport"
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+CAMERA_FILE = os.path.join(SCRIPT_DIR, "camera_urls.json")
+CONFIG_FILE = os.path.join(SCRIPT_DIR, "viewport_config.json")
 
-# === Safely fetch latest camera list ===
+
 def fetch_camera_list():
     try:
-        subprocess.run(["python3", "get_streams.py"], cwd=WORKDIR, check=True)
+        subprocess.run(["python3", "get_streams.py"], cwd=SCRIPT_DIR, check=True)
     except subprocess.CalledProcessError as e:
-        messagebox.showerror("Error", f"Failed to fetch camera list:\n{e}")
-        exit(1)
+        messagebox.showwarning("Camera Fetch Error", f"Could not update camera list:\n{e}")
 
-# === Validate existing config ===
-def check_existing_config():
-    try:
-        with open(CONFIG_FILE) as f:
-            data = json.load(f)
-        return (
-            isinstance(data.get("grid"), list)
-            and isinstance(data.get("tiles"), list)
-            and len(data["grid"]) == 2
-        )
-    except Exception:
-        return False
 
-# === Load camera list ===
-def load_camera_data():
-    try:
-        with open(CAMERA_FILE) as f:
-            cameras = json.load(f)
-        if not isinstance(cameras, list) or not cameras:
-            raise ValueError("No valid cameras found.")
-        camera_names = [cam["name"] for cam in cameras]
-        camera_map = {cam["name"]: cam["url"] for cam in cameras if cam["url"] != "None"}
-        return camera_names, camera_map
-    except Exception as e:
-        messagebox.showerror("Camera Error", f"Unable to load cameras:\n{e}")
-        exit(1)
+# Fetch camera list
+time.sleep(2)
+fetch_camera_list()
+
+# Load cameras
+camera_map = {}
+camera_names = []
+
+try:
+    with open(CAMERA_FILE, "r") as f:
+        cameras = json.load(f)
+    if not isinstance(cameras, list) or not cameras:
+        raise ValueError("Camera list is empty.")
+    camera_names = [cam["name"] for cam in cameras]
+    camera_map = {cam["name"]: cam["url"] for cam in cameras if cam.get("url")}
+except Exception as e:
+    messagebox.showwarning("Camera Load Warning", f"Unable to load cameras:\n{e}")
+
 
 # === Layout Selector UI ===
 class LayoutSelector(tk.Tk):
@@ -59,11 +50,21 @@ class LayoutSelector(tk.Tk):
 
         tk.Button(self, text="Create New Layout", command=self.select_layout).pack(pady=10)
 
-        self.has_valid_config = check_existing_config()
+        self.has_valid_config = self.check_existing_config()
 
         if self.has_valid_config:
             tk.Button(self, text="Use Last Layout", command=self.use_last_layout).pack(pady=5)
-            self.after(10000, self.prompt_for_default)  # 10s auto fallback
+            self.after(10000, self.prompt_for_default)  # 10s auto fallback prompt
+
+    def check_existing_config(self):
+        try:
+            if not os.path.isfile(CONFIG_FILE):
+                return False
+            with open(CONFIG_FILE) as f:
+                data = json.load(f)
+                return bool(data.get("tiles"))
+        except Exception:
+            return False
 
     def select_layout(self):
         self.withdraw()
@@ -73,14 +74,15 @@ class LayoutSelector(tk.Tk):
         self.withdraw()
         subprocess.Popen(
             ["./viewport.sh"],
-            cwd=WORKDIR,
-            stdout=open(os.path.join(WORKDIR, "viewport.log"), "a"),
+            cwd=SCRIPT_DIR,
+            stdout=open(os.path.join(SCRIPT_DIR, "viewport.log"), "a"),
             stderr=subprocess.STDOUT
         )
 
     def prompt_for_default(self):
         if self.winfo_exists() and self.has_valid_config:
             self.use_last_layout()
+
 
 # === Camera Grid Assignment UI ===
 class LayoutEditor(tk.Tk):
@@ -115,10 +117,7 @@ class LayoutEditor(tk.Tk):
                     name = var.get()
                     url = camera_map.get(name)
                     if url:
-                        subprocess.Popen([
-                            "mpv", "--no-border", "--profile=low-latency",
-                            "--untimed", "--rtsp-transport=tcp", url
-                        ])
+                        subprocess.Popen(["mpv", "--no-border", "--profile=low-latency", "--untimed", "--rtsp-transport=tcp", url])
                     else:
                         messagebox.showwarning("Preview Error", f"No valid stream for {name}")
                 tk.Button(cell, text="🔍", command=preview, width=2).pack(side=tk.LEFT)
@@ -161,13 +160,12 @@ class LayoutEditor(tk.Tk):
 
         subprocess.Popen(
             ["./viewport.sh"],
-            cwd=WORKDIR,
-            stdout=open(os.path.join(WORKDIR, "viewport.log"), "a"),
+            cwd=SCRIPT_DIR,
+            stdout=open(os.path.join(SCRIPT_DIR, "viewport.log"), "a"),
             stderr=subprocess.STDOUT
         )
 
-# === MAIN ===
+
+# === Run the app ===
 if __name__ == "__main__":
-    fetch_camera_list()
-    camera_names, camera_map = load_camera_data()
     LayoutSelector().mainloop()
