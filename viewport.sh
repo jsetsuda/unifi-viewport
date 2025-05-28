@@ -66,6 +66,9 @@ $JQ -c '.tiles[]' "$CONFIG_FILE" | while read -r tile; do
     continue
   fi
 
+  # Replace rtsps with rtsp to avoid TLS errors
+  URL=${URL//rtsps:/rtsp:}
+
   X=$((COL * WIN_W))
   Y=$((ROW * WIN_H))
   TITLE="tile_${ROW}_${COL}"
