@@ -76,8 +76,10 @@ $JQ -c '.tiles[]' "$CONFIG_FILE" | while read -r tile; do
   echo "[INFO] Launching $NAME at ${X},${Y} as $TITLE" >> "$LOG_FILE"
 
   $MPV --no-border --geometry=${WIN_W}x${WIN_H}+${X}+${Y} \
-       --profile=low-latency --untimed --rtsp-transport=tcp \
-       --title="$TITLE" --no-audio "$URL" >> "$LOG_FILE" 2>&1 &
+     --profile=low-latency --untimed --rtsp-transport=tcp \
+     --loop=inf --no-resume-playback --reconnect --reconnect-delay=1 \
+     --title="$TITLE" --no-audio "$URL" >> "$LOG_FILE" 2>&1 &
+
 done
 
 # Start stream monitor
