@@ -1,39 +1,81 @@
-# UniFi RTSP Viewport
+# UniFi RTSP Viewport for Raspberry Pi
 
-This project emulates the UniFi Protect Viewport device by displaying multiple RTSP streams in a tiled grid layout using a Raspberry Pi. It features automatic health monitoring, stream restart logic, a GUI layout selector, and overlay indicators.
+A lightweight RTSP viewer system for UniFi cameras, designed to emulate the UniFi Protect Viewport experience using a Raspberry Pi with minimal overhead.
 
 ## Features
-- Multi-camera RTSP viewer using `mpv`
-- Grid layout chooser with stream preview and JSON-based config
-- Automatic stream health checking and restart
-- Overlay box per stream with health indicator (green/red)
-- Auto-fallback to last layout if idle for 10 seconds
+- Auto-launching tiled RTSP stream display
+- Automatic stream health monitoring and restart
+- Graphical layout selector and camera assignment tool
+- Low-latency `mpv` playback
+- Works with Raspberry Pi OS Lite + minimal X11 setup
 
 ---
 
-## 🔧 Initial Raspberry Pi Setup
+## 🧰 Initial Raspberry Pi Setup
 
-These instructions assume a **fresh install of Raspberry Pi OS Lite 64-bit** on a Raspberry Pi 5 or 4.
+**Recommended OS:** Raspberry Pi OS Lite 64-bit (for performance and minimal footprint)
 
-### 1. System Update & Install Dependencies
+### 1. Flash Raspberry Pi OS Lite
+Use the [Raspberry Pi Imager](https://www.raspberrypi.com/software/) to install **Raspberry Pi OS Lite (64-bit)**.
+
+### 2. Log in via SSH or directly
+Set hostname, timezone, WiFi, etc. via `raspi-config` if needed:
 ```bash
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y git python3 python3-pip python3-tk mpv jq x11-utils xinit xserver-xorg x11-xserver-utils unclutter
+sudo raspi-config
 ```
 
-You may optionally install a minimal GUI:
+### 3. Expand Filesystem
+(Optional but recommended):
 ```bash
-sudo apt install -y openbox
+sudo raspi-config  # Choose: Advanced Options → Expand Filesystem
 ```
 
-### 2. Clone the Project
+---
+
+## 🖥️ Lightweight GUI Setup (No Full Desktop Required)
+
+Install a minimal GUI stack with X11 and a lightweight window manager:
+
 ```bash
+sudo apt update && sudo apt install -y \
+  xserver-xorg x11-xserver-utils xinit openbox \
+  lightdm tk python3-tk mpv jq git curl ffmpeg
+```
+
+Enable autologin to desktop environment:
+```bash
+sudo raspi-config
+# System Options → Boot / Auto Login → Desktop Autologin (B4)
+```
+
+Set Openbox as the window manager:
+```bash
+echo "openbox-session" > ~/.xsession
+```
+
+Autostart layout chooser:
+```bash
+mkdir -p ~/.config/openbox
+nano ~/.config/openbox/autostart
+```
+Add this line:
+```bash
+python3 /home/viewport/unifi-viewport/layout_chooser.py &
+```
+
+---
+
+## 🚀 Project Setup
+
+### 1. Clone the repository:
+```bash
+sudo apt install git -y
 cd ~
 git clone https://github.com/jsetsuda/unifi-viewport.git
 cd unifi-viewport
 ```
 
-### 3. Run the Installer
+### 2. Run install script:
 ```bash
 chmod +x install.sh
 ./install.sh
@@ -41,56 +83,31 @@ chmod +x install.sh
 
 ---
 
-## 🖥️ Usage
-
-### GUI Layout Selector
-To select camera layout and launch the viewer:
+## 🔄 Reboot
 ```bash
-cd ~/unifi-viewport
-./layout_chooser.py
+sudo reboot
 ```
 
-- You can preview each stream before assigning
-- After saving, it launches the full tiled viewer
-- If idle for 10 seconds, it defaults to the last layout
-
-### Auto-Start at Boot
-To enable viewer launch at boot:
-```bash
-sudo raspi-config
-```
-- Enable GUI autologin under **System Options > Boot / Auto Login**
-
-Edit the autostart script:
-```bash
-nano ~/.config/lxsession/LXDE-pi/autostart
-```
-Append this line:
-```bash
-@bash -c 'cd /home/viewport/unifi-viewport && ./layout_chooser.py'
-```
+The system will boot into the layout chooser GUI. After 10 seconds, it will default to the last saved layout if no interaction occurs.
 
 ---
 
-## 🗂️ Files
-- `camera_urls.json`: Live camera stream list (fetched via `get_streams.py`)
-- `camera_urls.txt`: Used to manually specify cameras (optional)
-- `viewport_config.json`: Grid layout and stream assignments
-- `viewport.sh`: Launches the tiled grid
-- `monitor_streams.py`: Automatically checks and restarts failed streams
-- `overlay_box.py`: Displays colored box over each stream indicating status
+## 🧪 Development and Testing
+This system includes:
+- `layout_chooser.py`: UI to select layout and assign cameras
+- `get_streams.py`: Fetches camera info from UniFi Protect
+- `monitor_streams.py`: Monitors stream health and restarts crashed streams
+- `overlay_box.py`: Adds on-screen overlay indicators
+- `viewport.sh`: Starts and tiles all streams
 
 ---
 
-## 📦 install.sh
-Installs required packages, sets up permissions, and copies service files if needed.
+## 🔐 GitHub Authentication
+GitHub requires a personal access token (PAT) instead of a password. [Generate a token here](https://github.com/settings/tokens) and use it in place of your password when pushing code.
 
 ---
 
-## ✅ Status
-Fully functional. Additional features like sound suppression, more control protocols, or GPU acceleration tuning are under exploration.
-
----
-
-## License
-MIT License
+## 📂 Files Used
+- `camera_urls.json`: Auto-generated camera list
+- `viewport_config.json`: Layout config created by GUI
+- `camera_urls.txt`: (Optional) fallback text file for URLs
