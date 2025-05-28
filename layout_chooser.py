@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#layout_chooser.py
+
 import os
 import time
 import json
@@ -46,10 +46,21 @@ class LayoutSelector(tk.Tk):
 
         tk.Button(self, text="Create New Layout", command=self.select_layout).pack(pady=10)
 
-        if os.path.exists(CONFIG_FILE):
-            tk.Button(self, text="Use Last Layout", command=self.use_last_layout).pack(pady=5)
+        self.has_valid_config = self.check_existing_config()
 
-        self.after(10000, self.auto_load_last_layout)  # auto fallback in 10 seconds
+        if self.has_valid_config:
+            tk.Button(self, text="Use Last Layout", command=self.use_last_layout).pack(pady=5)
+            self.after(10000, self.prompt_for_default)  # 10s auto fallback prompt
+
+    def check_existing_config(self):
+        try:
+            if os.path.exists(CONFIG_FILE):
+                with open(CONFIG_FILE) as f:
+                    cfg = json.load(f)
+                return isinstance(cfg, dict) and "grid" in cfg and "tiles" in cfg
+        except:
+            return False
+        return False
 
     def select_layout(self):
         self.withdraw()
@@ -64,9 +75,14 @@ class LayoutSelector(tk.Tk):
             stderr=subprocess.STDOUT
         )
 
-    def auto_load_last_layout(self):
-        if self.winfo_exists() and os.path.exists(CONFIG_FILE):
-            self.use_last_layout()
+    def prompt_for_default(self):
+        if self.winfo_exists() and self.has_valid_config:
+            use_last = messagebox.askyesno(
+                "Load Saved Layout?",
+                "Would you like to automatically load your last saved layout?"
+            )
+            if use_last:
+                self.use_last_layout()
 
 # === Camera Grid Assignment UI ===
 class LayoutEditor(tk.Tk):
@@ -101,7 +117,10 @@ class LayoutEditor(tk.Tk):
                     name = var.get()
                     url = camera_map.get(name)
                     if url:
-                        subprocess.Popen(["mpv", "--no-border", "--profile=low-latency", "--untimed", "--rtsp-transport=tcp", url])
+                        subprocess.Popen([
+                            "mpv", "--no-border", "--profile=low-latency",
+                            "--untimed", "--rtsp-transport=tcp", url
+                        ])
                     else:
                         messagebox.showwarning("Preview Error", f"No valid stream for {name}")
                 tk.Button(cell, text="🔍", command=preview, width=2).pack(side=tk.LEFT)
