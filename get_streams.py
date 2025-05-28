@@ -1,47 +1,60 @@
 #!/usr/bin/env python3
-
-import json
 import os
+import requests
+import json
 from dotenv import load_dotenv
-from uiprotect import ProtectApiClient
-from uiprotect.exceptions import NotAuthorized
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-CAMERA_FILE = os.path.join(SCRIPT_DIR, "camera_urls.json")
-ENV_FILE = os.path.join(SCRIPT_DIR, ".env")
+# Load environment variables
+load_dotenv()
 
-load_dotenv(ENV_FILE)
+UFP_HOST = os.getenv("UFP_HOST")
+UFP_USERNAME = os.getenv("UFP_USERNAME")
+UFP_PASSWORD = os.getenv("UFP_PASSWORD")
 
-host = os.getenv("UFP_HOST")
-username = os.getenv("UFP_USERNAME")
-password = os.getenv("UFP_PASSWORD")
-
-if not all([host, username, password]):
+if not all([UFP_HOST, UFP_USERNAME, UFP_PASSWORD]):
     raise Exception("UFP_HOST, UFP_USERNAME, and UFP_PASSWORD must be set in .env")
 
-try:
-    client = ProtectApiClient(host, username, password, ignore_warnings=True)
-    client.update()
-except NotAuthorized as e:
-    raise SystemExit(f"[ERROR] Login failed: {e}")
-except Exception as e:
-    raise SystemExit(f"[ERROR] Failed to connect: {e}")
+session = requests.Session()
+session.verify = False  # Disable SSL verification for local network
 
-camera_data = []
-for cam in client.bootstrap.cameras.values():
-    try:
-        if cam.is_adopted and cam.is_online and cam.is_recording:
-            camera_data.append({
-                "name": cam.name,
-                "url": cam.rtsps_uri
+# Authenticate with UniFi Protect
+login_payload = {
+    "username": UFP_USERNAME,
+    "password": UFP_PASSWORD
+}
+
+print("[INFO] Logging into UniFi Protect...")
+resp = session.post(f"{UFP_HOST}/api/auth/login", json=login_payload)
+resp.raise_for_status()
+
+# Get camera list
+print("[INFO] Fetching camera list...")
+resp = session.get(f"{UFP_HOST}/proxy/protect/api/camera")
+resp.raise_for_status()
+cameras = resp.json()
+
+camera_list = []
+for cam in cameras:
+    name = cam.get("name")
+    rtsp_streams = cam.get("channels", [])
+    for channel in rtsp_streams:
+        if "rtspAlias" in channel and channel.get("isRtspEnabled", False):
+            rtsp_url = f"{UFP_HOST.replace('https://', 'rtsps://')}/" + channel["rtspAlias"]
+            camera_list.append({
+                "name": name,
+                "url": rtsp_url
             })
-    except Exception as e:
-        print(f"[WARN] Could not add camera {cam.name}: {e}")
+            break
 
-if not camera_data:
-    raise SystemExit("[ERROR] No valid cameras retrieved.")
+# Convert rtsps:7441 → rtsp:7447 for MPV
+for cam in camera_list:
+    url = cam.get("url", "")
+    if url.startswith("rtsps://") and ":7441" in url:
+        url = url.replace("rtsps://", "rtsp://").replace(":7441", ":7447")
+        cam["url"] = url
 
-with open(CAMERA_FILE, "w") as f:
-    json.dump(camera_data, f, indent=2)
+# Save to file
+with open("camera_urls.json", "w") as f:
+    json.dump(camera_list, f, indent=2)
 
-print(f"[INFO] Saved {len(camera_data)} cameras to {CAMERA_FILE}")
+print(f"[SUCCESS] Saved {len(camera_list)} camera streams to camera_urls.json")
