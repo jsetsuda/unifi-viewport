@@ -7,9 +7,9 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # === CONFIGURATION ===
-UNIFI_HOST = "https://192.168.5.10"  # Replace with your NVR IP
-USERNAME = "viewport"
-PASSWORD = "ProtectViewer1!"
+UNIFI_HOST = "https://"  # Replace with your NVR IP
+USERNAME = "viewport"   # Replace with your local protect username
+PASSWORD = "xxxx"  # Replace with your local protect password
 
 
 def fetch_camera_streams():
