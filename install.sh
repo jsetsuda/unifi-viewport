@@ -1,52 +1,68 @@
 #!/bin/bash
 
-# install.sh - UniFi RTSP Viewport Installer
-
 set -e
 
-echo "=== UniFi RTSP Viewport Setup ==="
+echo "[INFO] Updating system..."
+sudo apt update && sudo apt upgrade -y
 
-# 1. Update packages
-echo "[1/7] Updating system packages..."
-sudo apt update && sudo apt full-upgrade -y
+echo "[INFO] Installing dependencies..."
+sudo apt install -y \
+  python3 python3-pip python3-tk jq mpv xinit openbox git x11-xserver-utils \
+  python3-venv ffmpeg libx11-dev
 
-# 2. Install required packages
-echo "[2/7] Installing dependencies..."
-sudo apt install -y python3 python3-pip python3-tk python3-requests python3-pil python3-opencv \
-                    mpv jq git ffmpeg x11-utils
-
-# 3. Setup autostart (for Desktop GUI only)
-if [ -d /etc/xdg/autostart ]; then
-    echo "[3/7] Setting up autostart..."
-    AUTOSTART_FILE="/etc/xdg/autostart/unifi-viewport.desktop"
-    sudo tee "$AUTOSTART_FILE" > /dev/null <<EOF
-[Desktop Entry]
-Type=Application
-Exec=/home/viewport/unifi-viewport/layout_chooser.py
-Hidden=false
-NoDisplay=false
-X-GNOME-Autostart-enabled=true
-Name=UniFi Viewport
-Comment=Start UniFi RTSP Viewport
-EOF
-    sudo chmod +x "$AUTOSTART_FILE"
+echo "[INFO] Creating viewport user if needed..."
+if ! id -u viewport >/dev/null 2>&1; then
+  sudo adduser --disabled-password --gecos "" viewport
+  sudo usermod -aG video,render,input,dialout,tty viewport
 fi
 
-# 4. Set executable permissions
-echo "[4/7] Setting permissions..."
-chmod +x ~/unifi-viewport/*.py
-chmod +x ~/unifi-viewport/*.sh
+echo "[INFO] Cloning repository as viewport..."
+sudo -u viewport -H bash <<EOF
+cd ~
+git clone https://github.com/jsetsuda/unifi-viewport.git
+cd unifi-viewport
+python3 -m pip install --user requests
+EOF
 
-# 5. Create logs directory if needed
-mkdir -p ~/unifi-viewport/logs
+echo "[INFO] Setting up autostart with Openbox..."
+mkdir -p /home/viewport/.config/openbox
+cat << 'EOL' > /home/viewport/.config/openbox/autostart
+#!/bin/bash
+xset s off
+xset -dpms
+xset s noblank
+cd ~/unifi-viewport
+./layout_chooser.py
+EOL
+chmod +x /home/viewport/.config/openbox/autostart
+chown -R viewport:viewport /home/viewport/.config
 
-# 6. Optional: Create Python virtualenv (not required for now)
-# python3 -m venv ~/unifi-viewport/venv
-# source ~/unifi-viewport/venv/bin/activate
-# pip install -r requirements.txt
+echo "[INFO] Creating X session startup..."
+cat << 'EOL' > /home/viewport/.xinitrc
+#!/bin/bash
+exec openbox-session
+EOL
+chmod +x /home/viewport/.xinitrc
+chown viewport:viewport /home/viewport/.xinitrc
 
-# 7. Done
-echo "✅ Install complete. You can now run:"
-echo "    ~/unifi-viewport/layout_chooser.py"
-echo
-echo "If running from GUI, it will auto-start on reboot."
+echo "[INFO] Creating systemd service to auto-start X on boot..."
+sudo tee /etc/systemd/system/viewport-display.service > /dev/null << 'EOF'
+[Unit]
+Description=Start X with Openbox for Viewport
+After=network.target
+
+[Service]
+User=viewport
+Environment=DISPLAY=:0
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+ExecStart=/usr/bin/startx
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+echo "[INFO] Enabling viewport-display.service..."
+sudo systemctl enable viewport-display.service
+
+echo "[DONE] Installation complete. Reboot the system to launch the viewer."
