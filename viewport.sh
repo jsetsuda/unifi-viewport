@@ -77,7 +77,7 @@ $JQ -c '.tiles[]' "$CONFIG_FILE" | while read -r tile; do
 
   $MPV --no-border --geometry=${WIN_W}x${WIN_H}+${X}+${Y} \
      --profile=low-latency --untimed --rtsp-transport=tcp \
-     --loop=inf --no-resume-playback --reconnect --reconnect-delay=1 \
+     --loop=inf --no-resume-playback \
      --title="$TITLE" --no-audio "$URL" >> "$LOG_FILE" 2>&1 &
 
 done
