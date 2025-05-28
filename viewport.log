@@ -1,604 +1,1 @@
-[INFO] Starting viewport.sh at Wed 28 May 13:04:39 EDT 2025
-[INFO] Launching CCI Outdoor Side North at 0,0 as tile_0_0
-[INFO] Launching CCI Outdoor Back East at 1920,0 as tile_0_1
-[INFO] Launching CCI Outdoor Side South at 0,1080 as tile_1_0
-[INFO] Launching CCI Outdoor Back West at 1920,1080 as tile_1_1
- (+) Video --vid=1 (hevc)
-     Audio --aid=1 (aac 1ch 48000Hz)
-     Audio --aid=2 (opus 2ch 48000Hz)
-File tags:
- Title: 74ACB99F7BE8_0
- (+) Video --vid=1 (hevc)
-     Audio --aid=1 (aac 1ch 48000Hz)
-     Audio --aid=2 (opus 2ch 48000Hz)
-File tags:
- Title: 74ACB99F82A7_0
- (+) Video --vid=1 (h264)
-     Audio --aid=1 (aac 1ch 48000Hz)
-     Audio --aid=2 (opus 2ch 48000Hz)
-File tags:
- Title: FCECDA1F38E1_0
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
- (+) Video --vid=1 (hevc)
-     Audio --aid=1 (aac 1ch 48000Hz)
-     Audio --aid=2 (opus 2ch 48000Hz)
-File tags:
- Title: 74ACB90BA5BD_0
-VO: [gpu] 1920x1080 yuv420p
-[KV: 00:00:00 / 00:00:00 (17%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:00 (21%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:00 (19%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-No video PTS! Making something up. Using 25.000000 FPS.
-VO: [gpu] 2688x1512 yuv420p
-VO: [gpu] 2688x1512 yuv420p
-[KV: 00:00:00 / 00:00:00 (24%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:00 (28%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:00 (32%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:00 (35%)[KV: 00:00:00 / 00:00:00 (36%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:00 (41%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:00 (42%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (44%)[KV: 00:00:00 / 00:00:00 (10%)[KV: 00:00:00 / 00:00:01 (8%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (46%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (47%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (50%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (12%)[KV: 00:00:00 / 00:00:01 (11%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (49%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (14%)[KV: 00:00:00 / 00:00:01 (51%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (17%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[KV: 00:00:00 / 00:00:01 (0%)[KV: 00:00:00 / 00:00:01 (52%)[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (20%)[KV: 00:00:00 / 00:00:01 (19%)[KV: 00:00:00 / 00:00:01 (53%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:01 / 00:00:01 (54%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:01 / 00:00:01 (55%)[KV: 00:00:00 / 00:00:01 (23%)[KV: 00:00:00 / 00:00:01 (22%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (4%)[KV: 00:00:01 / 00:00:01 (56%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[KV: 00:00:01 / 00:00:01 (57%)[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (25%)[KV: 00:00:00 / 00:00:01 (24%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:01 / 00:00:02 (57%)[KV: 00:00:00 / 00:00:01 (8%)[KV: 00:00:00 / 00:00:01 (7%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:01 / 00:00:02 (58%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (27%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (11%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:01 / 00:00:02 (60%)[KV: 00:00:00 / 00:00:01 (29%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:01 / 00:00:02 (61%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (14%)[KV: 00:00:00 / 00:00:01 (31%)[ffmpeg] NULL: PPS id out of range: 0
-[KV: 00:00:01 / 00:00:02 (62%)[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:01 / 00:00:02 (63%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (33%)[KV: 00:00:00 / 00:00:01 (32%)[KV: 00:00:00 / 00:00:01 (17%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:01 / 00:00:02 (64%)[KV: 00:00:01 / 00:00:02 (65%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[K[KV: 00:00:00 / 00:00:01 (20%)V: 00:00:00 / 00:00:01 (35%)[KV: 00:00:00 / 00:00:01 (34%)[KV: 00:00:00 / 00:00:01 (19%)[KV: 00:00:01 / 00:00:02 (66%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:01 / 00:00:02 (67%)[KV: 00:00:00 / 00:00:01 (37%)[KV: 00:00:00 / 00:00:01 (36%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:01 / 00:00:02 (68%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (38%)[KV: 00:00:01 / 00:00:02 (70%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (40%)[KV: 00:00:02 / 00:00:02 (70%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:02 / 00:00:02 (71%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (41%)[KV: 00:00:02 / 00:00:02 (72%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:02 / 00:00:02 (73%)[KV: 00:00:00 / 00:00:01 (23%)[KV: 00:00:00 / 00:00:01 (22%)[KV: 00:00:02 / 00:00:03 (73%)[KV: 00:00:00 / 00:00:01 (43%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:02 / 00:00:03 (74%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (44%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:02 / 00:00:03 (75%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (45%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:02 / 00:00:03 (77%)[KV: 00:00:02 / 00:00:03 (76%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (47%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:02 / 00:00:03 (77%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:02 / 00:00:03 (76%)[KV: 00:00:00 / 00:00:01 (48%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:02 / 00:00:03 (78%)[KV: 00:00:00 / 00:00:01 (25%)[KV: 00:00:00 / 00:00:01 (24%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (49%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (27%)[KV: 00:00:00 / 00:00:01 (26%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:01 / 00:00:02 (50%)[KV: 00:00:01 / 00:00:02 (49%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (29%)[KV: 00:00:01 / 00:00:02 (51%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:02 / 00:00:03 (79%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:03 / 00:00:03 (80%)[ffmpeg] NULL: PPS id out of range: 0
-[KV: 00:00:01 / 00:00:02 (52%)[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (31%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[K[KV: 00:00:01 / 00:00:02 (53%)V: 00:00:00 / 00:00:01 (33%)[KV: 00:00:01 / 00:00:02 (52%)[KV: 00:00:00 / 00:00:01 (32%)[KV: 00:00:03 / 00:00:03 (81%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:03 / 00:00:04 (80%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:01 / 00:00:02 (54%)[KV: 00:00:03 / 00:00:04 (81%)[KV: 00:00:00 / 00:00:01 (35%)[KV: 00:00:00 / 00:00:01 (34%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:03 / 00:00:04 (82%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:01 / 00:00:02 (55%)[KV: 00:00:01 / 00:00:02 (54%)[KV: 00:00:03 / 00:00:04 (80%)[KV: 00:00:00 / 00:00:01 (37%)[KV: 00:00:00 / 00:00:01 (36%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:03 / 00:00:04 (81%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:03 / 00:00:04 (80%)[KV: 00:00:01 / 00:00:02 (56%)[KV: 00:00:01 / 00:00:02 (55%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (38%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:03 / 00:00:04 (81%)[KV: 00:00:01 / 00:00:02 (56%)[KV: 00:00:01 / 00:00:02 (55%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (40%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:01 / 00:00:02 (57%)[KV: 00:00:01 / 00:00:02 (56%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (41%)[ffmpeg] NULL: PPS id out of range: 0
-[KV: 00:00:01 / 00:00:02 (58%)[KV: 00:00:01 / 00:00:02 (57%)[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (43%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:03 / 00:00:04 (82%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (44%)[KV: 00:00:01 / 00:00:02 (59%)[KV: 00:00:03 / 00:00:04 (81%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (45%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:01 / 00:00:02 (58%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (47%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[K[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-V: 00:00:01 / 00:00:02 (60%)[KV: 00:00:01 / 00:00:02 (59%)[KV: 00:00:00 / 00:00:01 (48%)[KV: 00:00:04 / 00:00:04 (81%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:01 / 00:00:02 (61%)[KV: 00:00:01 / 00:00:02 (60%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:00 / 00:00:01 (49%)[KV: 00:00:00 / 00:00:02 (48%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:01 / 00:00:02 (61%)[KV: 00:00:01 / 00:00:02 (50%)[KV: 00:00:01 / 00:00:02 (49%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:01 / 00:00:02 (62%)[KV: 00:00:01 / 00:00:02 (61%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:01 / 00:00:02 (51%)[KV: 00:00:01 / 00:00:02 (50%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:01 / 00:00:02 (63%)[ffmpeg] NULL: PPS id out of range: 0
-[ffmpeg/video] hevc: PPS id out of range: 0
-[ffmpeg/video] hevc: Error parsing NAL unit #0.
-Error while decoding frame!
-[KV: 00:00:01 / 00:00:02 (52%)[KV: 00:00:01 / 00:00:02 (51%)[KV: 00:00:01 / 00:00:02 (62%)[KV: 00:00:01 / 00:00:02 (53%)[KV: 00:00:01 / 00:00:02 (52%)[KV: 00:00:01 / 00:00:02 (54%)[KV: 00:00:01 / 00:00:02 (64%)[KV: 00:00:01 / 00:00:02 (63%)[KV: 00:00:01 / 00:00:02 (55%)[KV: 00:00:01 / 00:00:02 (54%)[KV: 00:00:01 / 00:00:02 (64%)[KV: 00:00:01 / 00:00:02 (63%)[KV: 00:00:01 / 00:00:02 (56%)[KV: 00:00:01 / 00:00:02 (55%)[KV: 00:00:04 / 00:00:05 (83%)[KV: 00:00:01 / 00:00:02 (65%)[KV: 00:00:01 / 00:00:02 (56%)VO: [gpu] 2688x1512 yuv420p
-[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:01 / 00:00:02 (64%)[KV: 00:00:04 / 00:00:05 (83%)[KV: 00:00:01 / 00:00:02 (57%)[KV: 00:00:01 / 00:00:02 (56%)[KV: 00:00:01 / 00:00:02 (58%)[KV: 00:00:01 / 00:00:02 (57%)[KV: 00:00:01 / 00:00:02 (66%)[KV: 00:00:01 / 00:00:02 (65%)[KV: 00:00:05 / 00:00:06 (83%)[KV: 00:00:04 / 00:00:05 (89%)[KV: 00:00:04 / 00:00:05 (84%)[KV: 00:00:01 / 00:00:02 (59%)[KV: 00:00:01 / 00:00:02 (58%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:01 / 00:00:02 (66%)[KV: 00:00:01 / 00:00:03 (65%)[KV: 00:00:01 / 00:00:02 (59%)[KV: 00:00:01 / 00:00:02 (58%)[KV: 00:00:04 / 00:00:05 (85%)[KV: 00:00:04 / 00:00:06 (83%)[KV: 00:00:02 / 00:00:03 (67%)[KV: 00:00:02 / 00:00:03 (66%)[K[KV: 00:00:01 / 00:00:02 (60%)V: 00:00:05 / 00:00:06 (83%)[KV: 00:00:01 / 00:00:02 (59%)[KV: 00:00:02 / 00:00:03 (67%)[KV: 00:00:02 / 00:00:03 (66%)[KV: 00:00:02 / 00:00:03 (68%)[KV: 00:00:02 / 00:00:03 (67%)[KV: 00:00:01 / 00:00:02 (61%)[KV: 00:00:01 / 00:00:02 (60%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:02 / 00:00:03 (68%)[KV: 00:00:02 / 00:00:03 (67%)[KV: 00:00:01 / 00:00:02 (61%)[KV: 00:00:01 / 00:00:02 (60%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:05 / 00:00:06 (83%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:02 / 00:00:03 (68%)[KV: 00:00:01 / 00:00:02 (62%)[KV: 00:00:01 / 00:00:02 (61%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:05 / 00:00:06 (83%)[KV: 00:00:01 / 00:00:02 (63%)[KV: 00:00:01 / 00:00:02 (62%)[KV: 00:00:02 / 00:00:03 (69%)[KV: 00:00:02 / 00:00:03 (68%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:05 / 00:00:06 (83%)[KV: 00:00:02 / 00:00:03 (69%)[KV: 00:00:02 / 00:00:03 (68%)[KV: 00:00:01 / 00:00:02 (63%)[KV: 00:00:01 / 00:00:02 (62%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:05 / 00:00:06 (83%)[KV: 00:00:05 / 00:00:06 (86%)[KV: 00:00:02 / 00:00:03 (70%)[KV: 00:00:02 / 00:00:03 (69%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:05 / 00:00:06 (83%)[KV: 00:00:01 / 00:00:02 (64%)[KV: 00:00:01 / 00:00:02 (63%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:02 / 00:00:03 (70%)[KV: 00:00:02 / 00:00:03 (69%)[KV: 00:00:06 / 00:00:07 (85%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:02 / 00:00:03 (70%)[KV: 00:00:01 / 00:00:02 (64%)[KV: 00:00:01 / 00:00:02 (63%)[KV: 00:00:02 / 00:00:03 (71%)[KV: 00:00:02 / 00:00:03 (70%)[KV: 00:00:01 / 00:00:02 (65%)[KV: 00:00:01 / 00:00:02 (64%)[KV: 00:00:02 / 00:00:03 (71%)[KV: 00:00:02 / 00:00:03 (70%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:01 / 00:00:02 (65%)[KV: 00:00:01 / 00:00:02 (64%)[KV: 00:00:02 / 00:00:03 (71%)[KV: 00:00:01 / 00:00:02 (66%)[KV: 00:00:01 / 00:00:02 (65%)[KV: 00:00:02 / 00:00:03 (72%)[KV: 00:00:02 / 00:00:03 (71%)[KV: 00:00:01 / 00:00:02 (66%)[KV: 00:00:01 / 00:00:03 (65%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:02 / 00:00:03 (72%)[KV: 00:00:02 / 00:00:03 (71%)[KV: 00:00:02 / 00:00:03 (67%)[KV: 00:00:02 / 00:00:03 (66%)[KV: 00:00:02 / 00:00:03 (72%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:02 / 00:00:03 (67%)[KV: 00:00:02 / 00:00:03 (66%)[KV: 00:00:02 / 00:00:03 (73%)[KV: 00:00:02 / 00:00:03 (72%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:02 / 00:00:03 (68%)[KV: 00:00:02 / 00:00:03 (67%)[KV: 00:00:02 / 00:00:03 (73%)[KV: 00:00:02 / 00:00:03 (72%)[KV: 00:00:02 / 00:00:03 (68%)[KV: 00:00:02 / 00:00:03 (67%)[KV: 00:00:06 / 00:00:08 (87%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:02 / 00:00:03 (73%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:02 / 00:00:03 (68%)[KV: 00:00:02 / 00:00:03 (74%)[KV: 00:00:02 / 00:00:03 (73%)[KV: 00:00:02 / 00:00:03 (69%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:02 / 00:00:03 (74%)[KV: 00:00:02 / 00:00:03 (73%)[KV: 00:00:02 / 00:00:03 (68%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:02 / 00:00:03 (70%)[KV: 00:00:02 / 00:00:03 (74%)[KV: 00:00:02 / 00:00:03 (73%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:02 / 00:00:03 (69%)[KV: 00:00:02 / 00:00:03 (74%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:02 / 00:00:03 (75%)[KV: 00:00:02 / 00:00:04 (74%)[KV: 00:00:02 / 00:00:03 (70%)[KV: 00:00:02 / 00:00:03 (71%)[KV: 00:00:03 / 00:00:04 (75%)[KV: 00:00:03 / 00:00:04 (74%)[KV: 00:00:03 / 00:00:04 (75%)[KV: 00:00:03 / 00:00:04 (74%)[KV: 00:00:03 / 00:00:04 (76%)[KV: 00:00:03 / 00:00:04 (75%)[KV: 00:00:02 / 00:00:03 (72%)[KV: 00:00:02 / 00:00:03 (71%)[KV: 00:00:03 / 00:00:04 (76%)[KV: 00:00:03 / 00:00:04 (75%)[KV: 00:00:05 / 00:00:06 (86%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:02 / 00:00:03 (72%)[KV: 00:00:02 / 00:00:03 (71%)[KV: 00:00:07 / 00:00:08 (89%)[KV: 00:00:03 / 00:00:04 (76%)[KV: 00:00:03 / 00:00:04 (75%)[KV: 00:00:05 / 00:00:06 (86%)[KV: 00:00:05 / 00:00:07 (85%)[KV: 00:00:02 / 00:00:03 (72%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:03 / 00:00:04 (76%)[KV: 00:00:03 / 00:00:04 (75%)[KV: 00:00:07 / 00:00:08 (89%)[KV: 00:00:02 / 00:00:03 (73%)[KV: 00:00:02 / 00:00:03 (72%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:06 / 00:00:07 (85%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:03 / 00:00:04 (76%)[KV: 00:00:02 / 00:00:03 (73%)[KV: 00:00:02 / 00:00:03 (72%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:06 / 00:00:07 (85%)[KV: 00:00:07 / 00:00:08 (89%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:03 / 00:00:04 (77%)[KV: 00:00:03 / 00:00:04 (76%)[KV: 00:00:02 / 00:00:03 (73%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:06 / 00:00:07 (85%)[KV: 00:00:02 / 00:00:03 (74%)[KV: 00:00:02 / 00:00:03 (73%)[KV: 00:00:03 / 00:00:04 (77%)[KV: 00:00:03 / 00:00:04 (76%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:06 / 00:00:07 (85%)[KV: 00:00:03 / 00:00:04 (77%)[KV: 00:00:03 / 00:00:04 (76%)[KV: 00:00:02 / 00:00:03 (74%)[KV: 00:00:02 / 00:00:03 (73%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:03 / 00:00:04 (77%)[KV: 00:00:02 / 00:00:03 (74%)[KV: 00:00:02 / 00:00:03 (73%)[KV: 00:00:02 / 00:00:03 (74%)[KV: 00:00:03 / 00:00:04 (78%)[KV: 00:00:03 / 00:00:04 (77%)[KV: 00:00:02 / 00:00:03 (75%)[K[KV: 00:00:03 / 00:00:04 (78%)V: 00:00:02 / 00:00:04 (74%)[KV: 00:00:03 / 00:00:04 (77%)[KV: 00:00:03 / 00:00:04 (78%)[KV: 00:00:03 / 00:00:04 (77%)[KV: 00:00:03 / 00:00:04 (75%)[KV: 00:00:03 / 00:00:04 (74%)[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:03 / 00:00:04 (78%)[KV: 00:00:03 / 00:00:04 (77%)[KV: 00:00:03 / 00:00:04 (75%)[KV: 00:00:03 / 00:00:04 (74%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:03 / 00:00:04 (78%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:03 / 00:00:04 (76%)[KV: 00:00:03 / 00:00:04 (75%)[KV: 00:00:03 / 00:00:04 (79%)[KV: 00:00:03 / 00:00:04 (78%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:03 / 00:00:04 (76%)[KV: 00:00:03 / 00:00:04 (75%)[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:03 / 00:00:04 (79%)[KV: 00:00:03 / 00:00:04 (78%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:08 / 00:00:10 (90%)[KV: 00:00:03 / 00:00:04 (76%)[KV: 00:00:03 / 00:00:04 (75%)[KV: 00:00:09 / 00:00:10 (90%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:03 / 00:00:04 (79%)[KV: 00:00:03 / 00:00:04 (78%)[KV: 00:00:03 / 00:00:04 (76%)[KV: 00:00:03 / 00:00:04 (75%)[KV: 00:00:03 / 00:00:04 (79%)[KV: 00:00:03 / 00:00:04 (78%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:03 / 00:00:04 (76%)[KV: 00:00:03 / 00:00:04 (79%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:03 / 00:00:04 (77%)[KV: 00:00:03 / 00:00:04 (76%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:03 / 00:00:04 (77%)[KV: 00:00:03 / 00:00:04 (76%)[KV: 00:00:03 / 00:00:04 (80%)[KV: 00:00:03 / 00:00:04 (79%)[KV: 00:00:03 / 00:00:04 (77%)[KV: 00:00:03 / 00:00:04 (76%)[KV: 00:00:03 / 00:00:04 (80%)[KV: 00:00:03 / 00:00:05 (79%)[KV: 00:00:03 / 00:00:04 (77%)[KV: 00:00:09 / 00:00:10 (91%)[KV: 00:00:04 / 00:00:05 (80%)[KV: 00:00:04 / 00:00:05 (79%)[KV: 00:00:09 / 00:00:10 (90%)[KV: 00:00:09 / 00:00:10 (91%)[KV: 00:00:03 / 00:00:04 (78%)[KV: 00:00:04 / 00:00:05 (80%)[KV: 00:00:03 / 00:00:04 (77%)[KV: 00:00:09 / 00:00:10 (90%)[KV: 00:00:09 / 00:00:10 (91%)[KV: 00:00:03 / 00:00:04 (78%)[KV: 00:00:03 / 00:00:04 (77%)[KV: 00:00:03 / 00:00:04 (78%)[KV: 00:00:03 / 00:00:04 (77%)[KV: 00:00:10 / 00:00:11 (91%)[KV: 00:00:04 / 00:00:05 (81%)[KV: 00:00:04 / 00:00:05 (80%)[KV: 00:00:06 / 00:00:08 (87%)[KV: 00:00:04 / 00:00:05 (81%)[KV: 00:00:04 / 00:00:05 (80%)[KV: 00:00:03 / 00:00:04 (78%)[KV: 00:00:03 / 00:00:04 (77%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:04 / 00:00:05 (81%)[KV: 00:00:04 / 00:00:05 (80%)[K[KV: 00:00:04 / 00:00:05 (81%)V: 00:00:03 / 00:00:04 (78%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:03 / 00:00:04 (79%)[KV: 00:00:03 / 00:00:04 (78%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:03 / 00:00:04 (79%)[KV: 00:00:03 / 00:00:04 (78%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:03 / 00:00:04 (79%)[KV: 00:00:03 / 00:00:04 (78%)[KV: 00:00:10 / 00:00:11 (92%)[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:04 / 00:00:05 (81%)[KV: 00:00:10 / 00:00:11 (91%)[KV: 00:00:03 / 00:00:04 (79%)[KV: 00:00:03 / 00:00:04 (78%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:03 / 00:00:04 (79%)[KV: 00:00:10 / 00:00:11 (92%)[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:04 / 00:00:05 (81%)[KV: 00:00:11 / 00:00:12 (91%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:11 / 00:00:12 (92%)[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:04 / 00:00:05 (81%)[KV: 00:00:03 / 00:00:04 (80%)[KV: 00:00:03 / 00:00:04 (79%)[KV: 00:00:11 / 00:00:12 (91%)[KV: 00:00:11 / 00:00:12 (92%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:11 / 00:00:12 (91%)[KV: 00:00:03 / 00:00:04 (80%)[KV: 00:00:03 / 00:00:05 (79%)[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:04 / 00:00:05 (81%)[KV: 00:00:11 / 00:00:12 (92%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:04 / 00:00:05 (80%)[KV: 00:00:04 / 00:00:05 (79%)[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:04 / 00:00:05 (81%)[KV: 00:00:04 / 00:00:05 (80%)[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:04 / 00:00:05 (81%)[KV: 00:00:04 / 00:00:05 (80%)[KV: 00:00:04 / 00:00:05 (81%)[KV: 00:00:04 / 00:00:05 (80%)[KV: 00:00:04 / 00:00:05 (83%)[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:04 / 00:00:05 (81%)[KV: 00:00:04 / 00:00:05 (80%)[KV: 00:00:04 / 00:00:05 (83%)[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:12 / 00:00:13 (92%)[KV: 00:00:04 / 00:00:05 (81%)[KV: 00:00:04 / 00:00:05 (80%)[KV: 00:00:04 / 00:00:05 (83%)[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:04 / 00:00:05 (81%)[KV: 00:00:07 / 00:00:08 (89%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (89%)[KV: 00:00:04 / 00:00:05 (83%)[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:04 / 00:00:05 (81%)[KV: 00:00:04 / 00:00:05 (83%)[KV: 00:00:12 / 00:00:13 (93%)[KV: 00:00:07 / 00:00:08 (89%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:04 / 00:00:05 (81%)[KV: 00:00:04 / 00:00:06 (83%)[KV: 00:00:07 / 00:00:08 (89%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:04 / 00:00:05 (81%)[KV: 00:00:07 / 00:00:08 (89%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:05 / 00:00:06 (83%)[KV: 00:00:12 / 00:00:13 (92%)[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:04 / 00:00:05 (81%)[KV: 00:00:12 / 00:00:13 (93%)[KV: 00:00:07 / 00:00:08 (89%)[KV: 00:00:07 / 00:00:09 (88%)[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:04 / 00:00:05 (81%)[KV: 00:00:12 / 00:00:13 (92%)[KV: 00:00:12 / 00:00:13 (93%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:08 / 00:00:09 (88%)[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:13 / 00:00:14 (93%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:05 / 00:00:06 (83%)[KV: 00:00:04 / 00:00:05 (83%)[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:04 / 00:00:05 (83%)[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:05 / 00:00:06 (83%)[KV: 00:00:04 / 00:00:05 (83%)[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:05 / 00:00:06 (83%)[KV: 00:00:04 / 00:00:05 (83%)[KV: 00:00:04 / 00:00:05 (82%)[KV: 00:00:05 / 00:00:06 (84%)[K[KV: 00:00:05 / 00:00:06 (83%)V: 00:00:04 / 00:00:05 (83%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:04 / 00:00:06 (83%)[KV: 00:00:13 / 00:00:15 (93%)[KV: 00:00:14 / 00:00:15 (93%)[KV: 00:00:05 / 00:00:06 (83%)[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:05 / 00:00:06 (83%)[KV: 00:00:14 / 00:00:15 (94%)[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:05 / 00:00:06 (83%)[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:05 / 00:00:06 (83%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:14 / 00:00:15 (93%)[KV: 00:00:14 / 00:00:15 (94%)[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:05 / 00:00:06 (83%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:05 / 00:00:06 (84%)[K[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:05 / 00:00:06 (83%)V: 00:00:14 / 00:00:15 (93%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:14 / 00:00:15 (94%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:14 / 00:00:15 (93%)[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:14 / 00:00:15 (94%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:15 / 00:00:16 (94%)[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:15 / 00:00:16 (93%)[KV: 00:00:15 / 00:00:16 (94%)[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:08 / 00:00:10 (90%)[KV: 00:00:09 / 00:00:10 (90%)[KV: 00:00:05 / 00:00:06 (86%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:05 / 00:00:06 (86%)[KV: 00:00:05 / 00:00:07 (85%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:06 / 00:00:07 (85%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:06 / 00:00:07 (85%)[KV: 00:00:16 / 00:00:17 (94%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:06 / 00:00:07 (85%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:06 / 00:00:07 (85%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:05 / 00:00:06 (84%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:09 / 00:00:10 (91%)[KV: 00:00:09 / 00:00:10 (90%)[KV: 00:00:17 / 00:00:18 (94%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:09 / 00:00:10 (91%)[KV: 00:00:09 / 00:00:10 (90%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:05 / 00:00:06 (86%)[KV: 00:00:05 / 00:00:06 (85%)[KV: 00:00:17 / 00:00:18 (95%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:09 / 00:00:10 (91%)[KV: 00:00:09 / 00:00:10 (90%)[KV: 00:00:05 / 00:00:06 (86%)[KV: 00:00:05 / 00:00:07 (85%)[KV: 00:00:17 / 00:00:18 (94%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:17 / 00:00:18 (95%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:06 / 00:00:07 (85%)[KV: 00:00:17 / 00:00:18 (94%)[KV: 00:00:09 / 00:00:10 (91%)[KV: 00:00:09 / 00:00:10 (90%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:06 / 00:00:07 (85%)[KV: 00:00:17 / 00:00:18 (95%)[KV: 00:00:09 / 00:00:10 (91%)[KV: 00:00:09 / 00:00:10 (90%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:06 / 00:00:07 (85%)[KV: 00:00:17 / 00:00:18 (94%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:17 / 00:00:18 (95%)[KV: 00:00:09 / 00:00:10 (91%)[KV: 00:00:09 / 00:00:10 (90%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:06 / 00:00:07 (85%)[KV: 00:00:09 / 00:00:10 (91%)[KV: 00:00:09 / 00:00:10 (90%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:18 / 00:00:19 (95%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:09 / 00:00:10 (91%)[KV: 00:00:09 / 00:00:10 (90%)[KV: 00:00:09 / 00:00:10 (91%)[KV: 00:00:09 / 00:00:10 (90%)[KV: 00:00:09 / 00:00:10 (91%)[KV: 00:00:09 / 00:00:10 (90%)[KV: 00:00:06 / 00:00:08 (87%)[KV: 00:00:09 / 00:00:10 (91%)[KV: 00:00:09 / 00:00:11 (91%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:10 / 00:00:11 (91%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:19 / 00:00:20 (95%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:06 / 00:00:07 (86%)[KV: 00:00:06 / 00:00:07 (87%)[KV: 00:00:20 / 00:00:21 (95%)
-[ffmpeg] tls: Error in the pull function.
-[ffmpeg] tls: IO error: End of file
-[KV: 00:00:07 / 00:00:08 (88%)
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[lavf] ...treating it as fatal error.
-[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (89%)[KV: 00:00:06 / 00:00:08 (87%)[KV: 00:00:07 / 00:00:08 (90%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:20 / 00:00:22 (95%)[KV: 00:00:07 / 00:00:08 (91%)[KV: 00:00:21 / 00:00:22 (95%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:21 / 00:00:22 (96%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:07 / 00:00:08 (92%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:21 / 00:00:22 (95%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:21 / 00:00:22 (96%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:07 / 00:00:08 (93%)[KV: 00:00:21 / 00:00:22 (95%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:21 / 00:00:22 (96%)[KV: 00:00:21 / 00:00:22 (95%)[KV: 00:00:10 / 00:00:11 (92%)[KV: 00:00:10 / 00:00:11 (91%)[KV: 00:00:07 / 00:00:08 (94%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (87%)[KV: 00:00:21 / 00:00:22 (96%)[KV: 00:00:08 / 00:00:08 (94%)[KV: 00:00:21 / 00:00:22 (95%)[KV: 00:00:10 / 00:00:11 (92%)[KV: 00:00:10 / 00:00:11 (91%)[K[KV: 00:00:21 / 00:00:22 (96%)V: 00:00:07 / 00:00:08 (88%)[KV: 00:00:08 / 00:00:08 (95%)[KV: 00:00:22 / 00:00:23 (96%)[KV: 00:00:10 / 00:00:11 (92%)[KV: 00:00:10 / 00:00:11 (91%)[KV: 00:00:10 / 00:00:11 (92%)[KV: 00:00:10 / 00:00:11 (91%)[KV: 00:00:08 / 00:00:08 (96%)[KV: 00:00:10 / 00:00:11 (92%)[KV: 00:00:10 / 00:00:12 (91%)[KV: 00:00:08 / 00:00:08 (97%)[KV: 00:00:11 / 00:00:12 (92%)[KV: 00:00:11 / 00:00:12 (91%)[KV: 00:00:11 / 00:00:12 (92%)[KV: 00:00:11 / 00:00:12 (91%)[KV: 00:00:08 / 00:00:08 (98%)[KV: 00:00:11 / 00:00:12 (92%)[KV: 00:00:11 / 00:00:12 (91%)[KV: 00:00:11 / 00:00:12 (92%)[KV: 00:00:11 / 00:00:12 (91%)[KV: 00:00:08 / 00:00:08 (99%)[KV: 00:00:23 / 00:00:24 (96%)[KV: 00:00:11 / 00:00:12 (92%)[KV: 00:00:11 / 00:00:12 (91%)[KV: 00:00:11 / 00:00:12 (92%)[KV: 00:00:11 / 00:00:12 (91%)[KV: 00:00:07 / 00:00:08 (89%)[KV: 00:00:11 / 00:00:12 (92%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (89%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (89%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (89%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (89%)[KV: 00:00:07 / 00:00:08 (88%)[KV: 00:00:07 / 00:00:08 (89%)[KV: 00:00:07 / 00:00:09 (88%)[KV: 00:00:08 / 00:00:08 (100%)[KV: 00:00:23 / 00:00:25 (96%)
-[ffmpeg] tls: The specified session has been invalidated for some reason.
 
-Exiting... (End of file)
-[KV: 00:00:24 / 00:00:25 (96%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:08 / 00:00:09 (88%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:25 / 00:00:26 (96%)[KV: 00:00:11 / 00:00:13 (92%)[KV: 00:00:12 / 00:00:13 (92%)[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:26 / 00:00:27 (96%)
-[ffmpeg] tls: Error in the pull function.
-[ffmpeg] tls: IO error: Connection reset by peer
-[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:12 / 00:00:13 (92%)
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[lavf] ...treating it as fatal error.
-[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:12 / 00:00:13 (93%)[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:12 / 00:00:13 (94%)[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:08 / 00:00:09 (89%)[KV: 00:00:26 / 00:00:28 (96%)[KV: 00:00:27 / 00:00:28 (96%)[KV: 00:00:08 / 00:00:09 (90%)[KV: 00:00:12 / 00:00:13 (95%)[KV: 00:00:09 / 00:00:10 (90%)[KV: 00:00:27 / 00:00:28 (97%)[KV: 00:00:12 / 00:00:13 (96%)[KV: 00:00:27 / 00:00:28 (96%)[KV: 00:00:27 / 00:00:28 (97%)[KV: 00:00:27 / 00:00:28 (96%)[KV: 00:00:27 / 00:00:28 (97%)[KV: 00:00:27 / 00:00:28 (96%)[KV: 00:00:27 / 00:00:28 (97%)[KV: 00:00:27 / 00:00:29 (96%)[KV: 00:00:28 / 00:00:29 (97%)[KV: 00:00:12 / 00:00:13 (97%)[KV: 00:00:28 / 00:00:29 (96%)[KV: 00:00:28 / 00:00:29 (97%)
-[ffmpeg] tls: Error in the pull function.
-[ffmpeg] tls: IO error: End of file
-[KV: 00:00:28 / 00:00:29 (96%)[KV: 00:00:13 / 00:00:13 (98%)[KV: 00:00:09 / 00:00:10 (90%)[KV: 00:00:28 / 00:00:29 (97%)
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-[lavf] error reading packet: Input/output error.
-[lavf] ...treating it as fatal error.
-[KV: 00:00:09 / 00:00:10 (90%)[KV: 00:00:28 / 00:00:29 (96%)[KV: 00:00:28 / 00:00:29 (97%)[KV: 00:00:09 / 00:00:10 (91%)[KV: 00:00:28 / 00:00:29 (96%)[KV: 00:00:28 / 00:00:29 (97%)[KV: 00:00:09 / 00:00:10 (92%)[KV: 00:00:13 / 00:00:13 (99%)[KV: 00:00:29 / 00:00:30 (97%)[KV: 00:00:13 / 00:00:13 (100%)[KV: 00:00:09 / 00:00:10 (93%)
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-
-Exiting... (End of file)
-[KV: 00:00:09 / 00:00:10 (94%)[KV: 00:00:30 / 00:00:31 (97%)[KV: 00:00:09 / 00:00:10 (95%)[KV: 00:00:09 / 00:00:10 (96%)[KV: 00:00:10 / 00:00:10 (96%)[KV: 00:00:10 / 00:00:10 (97%)[KV: 00:00:31 / 00:00:32 (97%)[KV: 00:00:10 / 00:00:10 (98%)[KV: 00:00:10 / 00:00:10 (99%)[KV: 00:00:10 / 00:00:10 (100%)
-[ffmpeg] tls: The specified session has been invalidated for some reason.
-
-Exiting... (End of file)
-[KV: 00:00:32 / 00:00:33 (97%)[KV: 00:00:32 / 00:00:34 (97%)[KV: 00:00:33 / 00:00:34 (97%)[KV: 00:00:34 / 00:00:35 (97%)[KV: 00:00:35 / 00:00:36 (97%)[KV: 00:00:36 / 00:00:37 (97%)[KV: 00:00:37 / 00:00:38 (97%)[KV: 00:00:37 / 00:00:39 (97%)[KV: 00:00:38 / 00:00:39 (97%)[KV: 00:00:39 / 00:00:40 (98%)[KV: 00:00:39 / 00:00:40 (97%)[KV: 00:00:39 / 00:00:40 (98%)[KV: 00:00:40 / 00:00:40 (98%)[KV: 00:00:40 / 00:00:40 (99%)[KV: 00:00:40 / 00:00:41 (99%)[KV: 00:00:40 / 00:00:41 (100%)[KV: 00:00:41 / 00:00:41 (100%)[KV: 00:00:41 / 00:00:42 (100%)[KV: 00:00:42 / 00:00:42 (100%)[KV: 00:00:42 / 00:00:43 (100%)[KV: 00:00:43 / 00:00:43 (100%)[KV: 00:00:43 / 00:00:44 (100%)[KV: 00:00:44 / 00:00:44 (100%)[KV: 00:00:44 / 00:00:45 (100%)[KV: 00:00:45 / 00:00:45 (100%)[KV: 00:00:45 / 00:00:46 (100%)[KV: 00:00:46 / 00:00:46 (100%)[KV: 00:00:46 / 00:00:47 (100%)[KV: 00:00:47 / 00:00:47 (100%)[KV: 00:00:47 / 00:00:48 (100%)[KV: 00:00:48 / 00:00:48 (100%)[KV: 00:00:48 / 00:00:49 (100%)[KV: 00:00:49 / 00:00:49 (100%)[KV: 00:00:49 / 00:00:50 (100%)[KV: 00:00:50 / 00:00:50 (100%)[KV: 00:00:50 / 00:00:51 (100%)[KV: 00:00:51 / 00:00:51 (100%)[KV: 00:00:51 / 00:00:52 (100%)[KV: 00:00:52 / 00:00:52 (100%)[KV: 00:00:52 / 00:00:53 (100%)[KV: 00:00:53 / 00:00:53 (100%)[KV: 00:00:53 / 00:00:54 (100%)[KV: 00:00:54 / 00:00:54 (100%)[KV: 00:00:54 / 00:00:55 (100%)[KV: 00:00:55 / 00:00:55 (100%)[KV: 00:00:55 / 00:00:56 (100%)[KV: 00:00:56 / 00:00:56 (100%)[KV: 00:00:56 / 00:00:57 (100%)[KV: 00:00:57 / 00:00:57 (100%)[KV: 00:00:57 / 00:00:58 (100%)[KV: 00:00:58 / 00:00:58 (100%)[KV: 00:00:58 / 00:00:59 (100%)[KV: 00:00:59 / 00:00:59 (100%)[KV: 00:00:59 / 00:01:00 (100%)[KV: 00:01:00 / 00:01:00 (100%)[KV: 00:01:00 / 00:01:01 (100%)[KV: 00:01:01 / 00:01:01 (100%)[KV: 00:01:01 / 00:01:02 (100%)[KV: 00:01:02 / 00:01:02 (100%)[KV: 00:01:02 / 00:01:03 (100%)[KV: 00:01:03 / 00:01:03 (100%)[KV: 00:01:03 / 00:01:04 (100%)[KV: 00:01:04 / 00:01:04 (100%)[KV: 00:01:04 / 00:01:05 (100%)[KV: 00:01:05 / 00:01:05 (100%)[KV: 00:01:05 / 00:01:06 (100%)[KV: 00:01:06 / 00:01:06 (100%)[KV: 00:01:06 / 00:01:07 (100%)[KV: 00:01:07 / 00:01:07 (100%)[KV: 00:01:07 / 00:01:08 (100%)[KV: 00:01:08 / 00:01:08 (100%)[KV: 00:01:08 / 00:01:09 (100%)[KV: 00:01:09 / 00:01:09 (100%)[KV: 00:01:09 / 00:01:10 (100%)[KV: 00:01:10 / 00:01:10 (100%)[KV: 00:01:10 / 00:01:11 (100%)[KV: 00:01:11 / 00:01:11 (100%)[KV: 00:01:11 / 00:01:12 (100%)[KV: 00:01:12 / 00:01:12 (100%)[KV: 00:01:12 / 00:01:13 (100%)[KV: 00:01:13 / 00:01:13 (100%)[KV: 00:01:13 / 00:01:14 (100%)[KV: 00:01:14 / 00:01:14 (100%)[KV: 00:01:14 / 00:01:15 (100%)[KV: 00:01:15 / 00:01:15 (100%)[KV: 00:01:15 / 00:01:16 (100%)[KV: 00:01:16 / 00:01:16 (100%)[KV: 00:01:16 / 00:01:17 (100%)[KV: 00:01:17 / 00:01:17 (100%)[KV: 00:01:17 / 00:01:18 (100%)[KV: 00:01:18 / 00:01:18 (100%)[KV: 00:01:18 / 00:01:19 (100%)[KV: 00:01:19 / 00:01:19 (100%)[KV: 00:01:19 / 00:01:20 (100%)[KV: 00:01:20 / 00:01:20 (100%)[KV: 00:01:20 / 00:01:21 (100%)[KV: 00:01:21 / 00:01:21 (100%)[KV: 00:01:21 / 00:01:22 (100%)[KV: 00:01:22 / 00:01:22 (100%)[KV: 00:01:22 / 00:01:23 (100%)[KV: 00:01:23 / 00:01:23 (100%)[KV: 00:01:23 / 00:01:24 (100%)[KV: 00:01:24 / 00:01:24 (100%)[KV: 00:01:24 / 00:01:25 (100%)[KV: 00:01:25 / 00:01:25 (100%)[KV: 00:01:25 / 00:01:26 (100%)[KV: 00:01:26 / 00:01:26 (100%)[KV: 00:01:26 / 00:01:27 (100%)[KV: 00:01:27 / 00:01:27 (100%)[KV: 00:01:27 / 00:01:28 (100%)[KV: 00:01:28 / 00:01:28 (100%)[KV: 00:01:28 / 00:01:29 (100%)[KV: 00:01:29 / 00:01:29 (100%)[KV: 00:01:29 / 00:01:30 (100%)[KV: 00:01:30 / 00:01:30 (100%)[KV: 00:01:30 / 00:01:31 (100%)[KV: 00:01:31 / 00:01:31 (100%)[KV: 00:01:31 / 00:01:32 (100%)[KV: 00:01:32 / 00:01:32 (100%)[KV: 00:01:32 / 00:01:33 (100%)[KV: 00:01:33 / 00:01:33 (100%)[KV: 00:01:33 / 00:01:34 (100%)[KV: 00:01:34 / 00:01:34 (100%)[KV: 00:01:34 / 00:01:35 (100%)[KV: 00:01:35 / 00:01:35 (100%)[KV: 00:01:35 / 00:01:36 (100%)[KV: 00:01:36 / 00:01:36 (100%)[KV: 00:01:36 / 00:01:37 (100%)[KV: 00:01:37 / 00:01:37 (100%)[KV: 00:01:37 / 00:01:38 (100%)[KV: 00:01:38 / 00:01:38 (100%)[KV: 00:01:38 / 00:01:39 (100%)[KV: 00:01:39 / 00:01:39 (100%)[KV: 00:01:39 / 00:01:40 (100%)[KV: 00:01:40 / 00:01:40 (100%)[KV: 00:01:40 / 00:01:41 (100%)[KV: 00:01:41 / 00:01:41 (100%)[KV: 00:01:41 / 00:01:42 (100%)[KV: 00:01:42 / 00:01:42 (100%)[KV: 00:01:42 / 00:01:43 (100%)[KV: 00:01:43 / 00:01:43 (100%)[KV: 00:01:43 / 00:01:44 (100%)[KV: 00:01:44 / 00:01:44 (100%)[KV: 00:01:44 / 00:01:45 (100%)[KV: 00:01:45 / 00:01:45 (100%)[KV: 00:01:45 / 00:01:46 (100%)[KV: 00:01:46 / 00:01:46 (100%)[KV: 00:01:46 / 00:01:47 (100%)[KV: 00:01:47 / 00:01:47 (100%)[KV: 00:01:47 / 00:01:48 (100%)[KV: 00:01:48 / 00:01:48 (100%)[KV: 00:01:48 / 00:01:49 (100%)[KV: 00:01:49 / 00:01:49 (100%)[KV: 00:01:49 / 00:01:50 (100%)[KV: 00:01:50 / 00:01:50 (100%)[KV: 00:01:50 / 00:01:51 (100%)[KV: 00:01:51 / 00:01:51 (100%)[KV: 00:01:51 / 00:01:52 (100%)[KV: 00:01:52 / 00:01:52 (100%)[KV: 00:01:52 / 00:01:53 (100%)[KV: 00:01:53 / 00:01:53 (100%)[KV: 00:01:53 / 00:01:54 (100%)[KV: 00:01:54 / 00:01:54 (100%)[KV: 00:01:54 / 00:01:55 (100%)[KV: 00:01:55 / 00:01:55 (100%)[KV: 00:01:55 / 00:01:56 (100%)[KV: 00:01:56 / 00:01:56 (100%)[KV: 00:01:56 / 00:01:57 (100%)[KV: 00:01:57 / 00:01:57 (100%)[KV: 00:01:57 / 00:01:58 (100%)[KV: 00:01:58 / 00:01:58 (100%)[KV: 00:01:58 / 00:01:59 (100%)[KV: 00:01:59 / 00:01:59 (100%)[KV: 00:01:59 / 00:02:00 (100%)[KV: 00:02:00 / 00:02:00 (100%)[KV: 00:02:00 / 00:02:01 (100%)[KV: 00:02:01 / 00:02:01 (100%)[KV: 00:02:01 / 00:02:02 (100%)[KV: 00:02:02 / 00:02:02 (100%)[KV: 00:02:02 / 00:02:03 (100%)[KV: 00:02:03 / 00:02:03 (100%)[KV: 00:02:03 / 00:02:04 (100%)[KV: 00:02:04 / 00:02:04 (100%)[KV: 00:02:04 / 00:02:05 (100%)[KV: 00:02:05 / 00:02:05 (100%)[KV: 00:02:05 / 00:02:06 (100%)[KV: 00:02:06 / 00:02:06 (100%)[KV: 00:02:06 / 00:02:07 (100%)[KV: 00:02:07 / 00:02:07 (100%)[KV: 00:02:07 / 00:02:08 (100%)[KV: 00:02:08 / 00:02:08 (100%)[KV: 00:02:08 / 00:02:09 (100%)[KV: 00:02:09 / 00:02:09 (100%)[KV: 00:02:09 / 00:02:10 (100%)[KV: 00:02:10 / 00:02:10 (100%)[KV: 00:02:10 / 00:02:11 (100%)[KV: 00:02:11 / 00:02:11 (100%)[KV: 00:02:11 / 00:02:12 (100%)[KV: 00:02:12 / 00:02:12 (100%)[KV: 00:02:12 / 00:02:13 (100%)[KV: 00:02:13 / 00:02:13 (100%)[KV: 00:02:13 / 00:02:14 (100%)[KV: 00:02:14 / 00:02:14 (100%)[KV: 00:02:14 / 00:02:15 (100%)[KV: 00:02:15 / 00:02:15 (100%)[KV: 00:02:15 / 00:02:16 (100%)[KV: 00:02:16 / 00:02:16 (100%)[KV: 00:02:16 / 00:02:17 (100%)[KV: 00:02:17 / 00:02:17 (100%)[KV: 00:02:17 / 00:02:18 (100%)[KV: 00:02:18 / 00:02:18 (100%)[KV: 00:02:18 / 00:02:19 (100%)[KV: 00:02:19 / 00:02:19 (100%)[KV: 00:02:19 / 00:02:20 (100%)[KV: 00:02:20 / 00:02:20 (100%)[KV: 00:02:20 / 00:02:21 (100%)[KV: 00:02:21 / 00:02:21 (100%)[KV: 00:02:21 / 00:02:22 (100%)[KV: 00:02:22 / 00:02:22 (100%)[KV: 00:02:22 / 00:02:23 (100%)[KV: 00:02:23 / 00:02:23 (100%)[KV: 00:02:23 / 00:02:24 (100%)[KV: 00:02:24 / 00:02:24 (100%)[KV: 00:02:24 / 00:02:25 (100%)[KV: 00:02:25 / 00:02:25 (100%)[KV: 00:02:25 / 00:02:26 (100%)[KV: 00:02:26 / 00:02:26 (100%)[KV: 00:02:26 / 00:02:27 (100%)[KV: 00:02:27 / 00:02:27 (100%)[KV: 00:02:27 / 00:02:28 (100%)[KV: 00:02:28 / 00:02:28 (100%)[KV: 00:02:28 / 00:02:29 (100%)[KV: 00:02:29 / 00:02:29 (100%)[KV: 00:02:29 / 00:02:30 (100%)[KV: 00:02:30 / 00:02:30 (100%)[KV: 00:02:30 / 00:02:31 (100%)[KV: 00:02:31 / 00:02:31 (100%)[KV: 00:02:31 / 00:02:32 (100%)[KV: 00:02:32 / 00:02:32 (100%)[KV: 00:02:32 / 00:02:33 (100%)[KV: 00:02:33 / 00:02:33 (100%)[KV: 00:02:33 / 00:02:34 (100%)[KV: 00:02:34 / 00:02:34 (100%)[KV: 00:02:34 / 00:02:35 (100%)[KV: 00:02:35 / 00:02:35 (100%)[KV: 00:02:35 / 00:02:36 (100%)[KV: 00:02:36 / 00:02:36 (100%)[KV: 00:02:36 / 00:02:37 (100%)[KV: 00:02:37 / 00:02:37 (100%)[KV: 00:02:37 / 00:02:38 (100%)[KV: 00:02:38 / 00:02:38 (100%)[KV: 00:02:38 / 00:02:39 (100%)[KV: 00:02:39 / 00:02:39 (100%)[KV: 00:02:39 / 00:02:40 (100%)[KV: 00:02:40 / 00:02:40 (100%)[KV: 00:02:40 / 00:02:41 (100%)[KV: 00:02:41 / 00:02:41 (100%)[KV: 00:02:41 / 00:02:42 (100%)[KV: 00:02:42 / 00:02:42 (100%)[KV: 00:02:42 / 00:02:43 (100%)[KV: 00:02:43 / 00:02:43 (100%)[KV: 00:02:43 / 00:02:44 (100%)[KV: 00:02:44 / 00:02:44 (100%)[KV: 00:02:44 / 00:02:45 (100%)[KV: 00:02:45 / 00:02:45 (100%)[KV: 00:02:45 / 00:02:46 (100%)[KV: 00:02:46 / 00:02:46 (100%)[KV: 00:02:46 / 00:02:47 (100%)[KV: 00:02:47 / 00:02:47 (100%)[KV: 00:02:47 / 00:02:48 (100%)[KV: 00:02:48 / 00:02:48 (100%)[KV: 00:02:48 / 00:02:49 (100%)[KV: 00:02:49 / 00:02:49 (100%)[KV: 00:02:49 / 00:02:50 (100%)[KV: 00:02:50 / 00:02:50 (100%)[KV: 00:02:50 / 00:02:51 (100%)[KV: 00:02:51 / 00:02:51 (100%)[KV: 00:02:51 / 00:02:52 (100%)[KV: 00:02:52 / 00:02:52 (100%)[KV: 00:02:52 / 00:02:53 (100%)[KV: 00:02:53 / 00:02:53 (100%)[KV: 00:02:53 / 00:02:54 (100%)[KV: 00:02:54 / 00:02:54 (100%)[KV: 00:02:54 / 00:02:55 (100%)[KV: 00:02:55 / 00:02:55 (100%)[KV: 00:02:55 / 00:02:56 (100%)[KV: 00:02:56 / 00:02:56 (100%)[KV: 00:02:56 / 00:02:57 (100%)[KV: 00:02:57 / 00:02:57 (100%)[KV: 00:02:57 / 00:02:58 (100%)[KV: 00:02:58 / 00:02:58 (100%)[KV: 00:02:58 / 00:02:59 (100%)[KV: 00:02:59 / 00:02:59 (100%)[KV: 00:02:59 / 00:03:00 (100%)[KV: 00:03:00 / 00:03:00 (100%)[KV: 00:03:00 / 00:03:01 (100%)[KV: 00:03:01 / 00:03:01 (100%)[KV: 00:03:01 / 00:03:02 (100%)[KV: 00:03:02 / 00:03:02 (100%)[KV: 00:03:02 / 00:03:03 (100%)[KV: 00:03:03 / 00:03:03 (100%)[KV: 00:03:03 / 00:03:04 (100%)[KV: 00:03:04 / 00:03:04 (100%)[KV: 00:03:04 / 00:03:05 (100%)[KV: 00:03:05 / 00:03:05 (100%)[KV: 00:03:05 / 00:03:06 (100%)[KV: 00:03:06 / 00:03:06 (100%)[KV: 00:03:06 / 00:03:07 (100%)[KV: 00:03:07 / 00:03:07 (100%)[KV: 00:03:07 / 00:03:08 (100%)[KV: 00:03:08 / 00:03:08 (100%)[KV: 00:03:08 / 00:03:09 (100%)[KV: 00:03:09 / 00:03:09 (100%)[KV: 00:03:09 / 00:03:10 (100%)[KV: 00:03:10 / 00:03:10 (100%)[KV: 00:03:10 / 00:03:11 (100%)[KV: 00:03:11 / 00:03:11 (100%)[KV: 00:03:11 / 00:03:12 (100%)[KV: 00:03:12 / 00:03:12 (100%)[KV: 00:03:12 / 00:03:13 (100%)[KV: 00:03:13 / 00:03:13 (100%)[KV: 00:03:13 / 00:03:14 (100%)[KV: 00:03:14 / 00:03:14 (100%)[KV: 00:03:14 / 00:03:15 (100%)[KV: 00:03:15 / 00:03:15 (100%)[KV: 00:03:15 / 00:03:16 (100%)[KV: 00:03:16 / 00:03:16 (100%)[KV: 00:03:16 / 00:03:17 (100%)[KV: 00:03:17 / 00:03:17 (100%)[KV: 00:03:17 / 00:03:18 (100%)[KV: 00:03:18 / 00:03:18 (100%)[KV: 00:03:18 / 00:03:19 (100%)[KV: 00:03:19 / 00:03:19 (100%)[KV: 00:03:19 / 00:03:20 (100%)[KV: 00:03:20 / 00:03:20 (100%)[KV: 00:03:20 / 00:03:21 (100%)[KV: 00:03:21 / 00:03:21 (100%)[KV: 00:03:21 / 00:03:22 (100%)[KV: 00:03:22 / 00:03:22 (100%)[KV: 00:03:22 / 00:03:23 (100%)[KV: 00:03:23 / 00:03:23 (100%)[KV: 00:03:23 / 00:03:24 (100%)[KV: 00:03:24 / 00:03:24 (100%)[KV: 00:03:24 / 00:03:25 (100%)[KV: 00:03:25 / 00:03:25 (100%)[KV: 00:03:25 / 00:03:26 (100%)[KV: 00:03:26 / 00:03:26 (100%)[KV: 00:03:26 / 00:03:27 (100%)[KV: 00:03:27 / 00:03:27 (100%)[KV: 00:03:27 / 00:03:28 (100%)[KV: 00:03:28 / 00:03:28 (100%)[KV: 00:03:28 / 00:03:29 (100%)[KV: 00:03:29 / 00:03:29 (100%)[KV: 00:03:29 / 00:03:30 (100%)[KV: 00:03:30 / 00:03:30 (100%)[KV: 00:03:30 / 00:03:31 (100%)[KV: 00:03:31 / 00:03:31 (100%)[KV: 00:03:31 / 00:03:32 (100%)[KV: 00:03:32 / 00:03:32 (100%)[KV: 00:03:32 / 00:03:33 (100%)[KV: 00:03:33 / 00:03:33 (100%)[KV: 00:03:33 / 00:03:34 (100%)[KV: 00:03:34 / 00:03:34 (100%)[KV: 00:03:34 / 00:03:35 (100%)[KV: 00:03:35 / 00:03:35 (100%)[KV: 00:03:35 / 00:03:36 (100%)[KV: 00:03:36 / 00:03:36 (100%)[KV: 00:03:36 / 00:03:37 (100%)[KV: 00:03:37 / 00:03:37 (100%)[KV: 00:03:37 / 00:03:38 (100%)[KV: 00:03:38 / 00:03:38 (100%)[KV: 00:03:38 / 00:03:39 (100%)[KV: 00:03:39 / 00:03:39 (100%)[KV: 00:03:39 / 00:03:40 (100%)[KV: 00:03:40 / 00:03:40 (100%)[KV: 00:03:40 / 00:03:41 (100%)[KV: 00:03:41 / 00:03:41 (100%)[KV: 00:03:41 / 00:03:42 (100%)[KV: 00:03:42 / 00:03:42 (100%)[KV: 00:03:42 / 00:03:43 (100%)[KV: 00:03:43 / 00:03:43 (100%)[KV: 00:03:43 / 00:03:44 (100%)[KV: 00:03:44 / 00:03:44 (100%)[KV: 00:03:44 / 00:03:45 (100%)[KV: 00:03:45 / 00:03:45 (100%)[KV: 00:03:45 / 00:03:46 (100%)[KV: 00:03:46 / 00:03:46 (100%)[KV: 00:03:46 / 00:03:47 (100%)[KV: 00:03:47 / 00:03:47 (100%)[KV: 00:03:47 / 00:03:48 (100%)[KV: 00:03:48 / 00:03:48 (100%)[KV: 00:03:48 / 00:03:49 (100%)[KV: 00:03:49 / 00:03:49 (100%)[KV: 00:03:49 / 00:03:50 (100%)[KV: 00:03:50 / 00:03:50 (100%)[KV: 00:03:50 / 00:03:51 (100%)[KV: 00:03:51 / 00:03:51 (100%)[KV: 00:03:51 / 00:03:52 (100%)[KV: 00:03:52 / 00:03:52 (100%)[KV: 00:03:52 / 00:03:53 (100%)[KV: 00:03:53 / 00:03:53 (100%)[KV: 00:03:53 / 00:03:54 (100%)[KV: 00:03:54 / 00:03:54 (100%)[KV: 00:03:54 / 00:03:55 (100%)[KV: 00:03:55 / 00:03:55 (100%)[KV: 00:03:55 / 00:03:56 (100%)[KV: 00:03:56 / 00:03:56 (100%)[KV: 00:03:56 / 00:03:57 (100%)[KV: 00:03:57 / 00:03:57 (100%)[KV: 00:03:57 / 00:03:58 (100%)[KV: 00:03:58 / 00:03:58 (100%)[KV: 00:03:58 / 00:03:59 (100%)[KV: 00:03:59 / 00:03:59 (100%)[KV: 00:03:59 / 00:04:00 (100%)[KV: 00:04:00 / 00:04:00 (100%)[KV: 00:04:00 / 00:04:01 (100%)[KV: 00:04:01 / 00:04:01 (100%)[KV: 00:04:01 / 00:04:02 (100%)[KV: 00:04:02 / 00:04:02 (100%)[KV: 00:04:02 / 00:04:03 (100%)[KV: 00:04:03 / 00:04:03 (100%)[KV: 00:04:03 / 00:04:04 (100%)[KV: 00:04:04 / 00:04:04 (100%)[KV: 00:04:04 / 00:04:05 (100%)[KV: 00:04:05 / 00:04:05 (100%)[KV: 00:04:05 / 00:04:06 (100%)[KV: 00:04:06 / 00:04:06 (100%)[KV: 00:04:06 / 00:04:07 (100%)[KV: 00:04:07 / 00:04:07 (100%)[KV: 00:04:07 / 00:04:08 (100%)[KV: 00:04:08 / 00:04:08 (100%)[KV: 00:04:08 / 00:04:09 (100%)[KV: 00:04:09 / 00:04:09 (100%)[KV: 00:04:09 / 00:04:10 (100%)[KV: 00:04:10 / 00:04:10 (100%)[KV: 00:04:10 / 00:04:11 (100%)[KV: 00:04:11 / 00:04:11 (100%)[KV: 00:04:11 / 00:04:12 (100%)[KV: 00:04:12 / 00:04:12 (100%)[KV: 00:04:12 / 00:04:13 (100%)[KV: 00:04:13 / 00:04:13 (100%)[KV: 00:04:13 / 00:04:14 (100%)[KV: 00:04:14 / 00:04:14 (100%)[KV: 00:04:14 / 00:04:15 (100%)[KV: 00:04:15 / 00:04:15 (100%)[KV: 00:04:15 / 00:04:16 (100%)[KV: 00:04:16 / 00:04:16 (100%)[KV: 00:04:16 / 00:04:17 (100%)[KV: 00:04:17 / 00:04:17 (100%)[KV: 00:04:17 / 00:04:18 (100%)[KV: 00:04:18 / 00:04:18 (100%)[KV: 00:04:18 / 00:04:19 (100%)[KV: 00:04:19 / 00:04:19 (100%)[KV: 00:04:19 / 00:04:20 (100%)[KV: 00:04:20 / 00:04:20 (100%)[KV: 00:04:20 / 00:04:21 (100%)[KV: 00:04:21 / 00:04:21 (100%)[KV: 00:04:21 / 00:04:22 (100%)[KV: 00:04:22 / 00:04:22 (100%)[KV: 00:04:22 / 00:04:23 (100%)[KV: 00:04:23 / 00:04:23 (100%)[KV: 00:04:23 / 00:04:24 (100%)[KV: 00:04:24 / 00:04:24 (100%)[KV: 00:04:24 / 00:04:25 (100%)[KV: 00:04:25 / 00:04:25 (100%)[KV: 00:04:25 / 00:04:26 (100%)[KV: 00:04:26 / 00:04:26 (100%)[KV: 00:04:26 / 00:04:27 (100%)[KV: 00:04:27 / 00:04:27 (100%)[KV: 00:04:27 / 00:04:28 (100%)[KV: 00:04:28 / 00:04:28 (100%)[KV: 00:04:28 / 00:04:29 (100%)[KV: 00:04:29 / 00:04:29 (100%)[KV: 00:04:29 / 00:04:30 (100%)[KV: 00:04:30 / 00:04:30 (100%)[KV: 00:04:30 / 00:04:31 (100%)[KV: 00:04:31 / 00:04:31 (100%)[KV: 00:04:31 / 00:04:32 (100%)[KV: 00:04:32 / 00:04:32 (100%)[KV: 00:04:32 / 00:04:33 (100%)[KV: 00:04:33 / 00:04:33 (100%)[KV: 00:04:33 / 00:04:34 (100%)[KV: 00:04:34 / 00:04:34 (100%)[KV: 00:04:34 / 00:04:35 (100%)[KV: 00:04:35 / 00:04:35 (100%)[KV: 00:04:35 / 00:04:36 (100%)[KV: 00:04:36 / 00:04:36 (100%)[KV: 00:04:36 / 00:04:37 (100%)[KV: 00:04:37 / 00:04:37 (100%)[KV: 00:04:37 / 00:04:38 (100%)[KV: 00:04:38 / 00:04:38 (100%)[KV: 00:04:38 / 00:04:39 (100%)[KV: 00:04:39 / 00:04:39 (100%)[KV: 00:04:39 / 00:04:40 (100%)[KV: 00:04:40 / 00:04:40 (100%)[KV: 00:04:40 / 00:04:41 (100%)[KV: 00:04:41 / 00:04:41 (100%)[KV: 00:04:41 / 00:04:42 (100%)[KV: 00:04:42 / 00:04:42 (100%)[KV: 00:04:42 / 00:04:43 (100%)[KV: 00:04:43 / 00:04:43 (100%)[KV: 00:04:43 / 00:04:44 (100%)[KV: 00:04:44 / 00:04:44 (100%)[KV: 00:04:44 / 00:04:45 (100%)[KV: 00:04:45 / 00:04:45 (100%)[KV: 00:04:45 / 00:04:46 (100%)[KV: 00:04:46 / 00:04:46 (100%)[KV: 00:04:46 / 00:04:47 (100%)[KV: 00:04:47 / 00:04:47 (100%)[KV: 00:04:47 / 00:04:48 (100%)[KV: 00:04:48 / 00:04:48 (100%)[KV: 00:04:48 / 00:04:49 (100%)[KV: 00:04:49 / 00:04:49 (100%)[KV: 00:04:49 / 00:04:50 (100%)[KV: 00:04:50 / 00:04:50 (100%)[KV: 00:04:50 / 00:04:51 (100%)[KV: 00:04:51 / 00:04:51 (100%)[KV: 00:04:51 / 00:04:52 (100%)[KV: 00:04:52 / 00:04:52 (100%)[KV: 00:04:52 / 00:04:53 (100%)[KV: 00:04:53 / 00:04:53 (100%)[KV: 00:04:53 / 00:04:54 (100%)[KV: 00:04:54 / 00:04:54 (100%)[KV: 00:04:54 / 00:04:55 (100%)[KV: 00:04:55 / 00:04:55 (100%)[KV: 00:04:55 / 00:04:56 (100%)[KV: 00:04:56 / 00:04:56 (100%)[KV: 00:04:56 / 00:04:57 (100%)[KV: 00:04:57 / 00:04:57 (100%)[KV: 00:04:57 / 00:04:58 (100%)[KV: 00:04:58 / 00:04:58 (100%)[KV: 00:04:58 / 00:04:59 (100%)[KV: 00:04:59 / 00:04:59 (100%)[KV: 00:04:59 / 00:05:00 (100%)[KV: 00:05:00 / 00:05:00 (100%)[KV: 00:05:00 / 00:05:01 (100%)[KV: 00:05:01 / 00:05:01 (100%)[KV: 00:05:01 / 00:05:02 (100%)[KV: 00:05:02 / 00:05:02 (100%)[KV: 00:05:02 / 00:05:03 (100%)[KV: 00:05:03 / 00:05:03 (100%)[KV: 00:05:03 / 00:05:04 (100%)[KV: 00:05:04 / 00:05:04 (100%)[KV: 00:05:04 / 00:05:05 (100%)[KV: 00:05:05 / 00:05:05 (100%)[KV: 00:05:05 / 00:05:06 (100%)[KV: 00:05:06 / 00:05:06 (100%)[KV: 00:05:06 / 00:05:07 (100%)[KV: 00:05:07 / 00:05:07 (100%)[KV: 00:05:07 / 00:05:08 (100%)[KV: 00:05:08 / 00:05:08 (100%)[KV: 00:05:08 / 00:05:09 (100%)[KV: 00:05:09 / 00:05:09 (100%)[KV: 00:05:09 / 00:05:10 (100%)[KV: 00:05:10 / 00:05:10 (100%)[KV: 00:05:10 / 00:05:11 (100%)[KV: 00:05:11 / 00:05:11 (100%)[KV: 00:05:11 / 00:05:12 (100%)[KV: 00:05:12 / 00:05:12 (100%)[KV: 00:05:12 / 00:05:13 (100%)[KV: 00:05:13 / 00:05:13 (100%)[KV: 00:05:13 / 00:05:14 (100%)[KV: 00:05:14 / 00:05:14 (100%)[KV: 00:05:14 / 00:05:15 (100%)[KV: 00:05:15 / 00:05:15 (100%)[KV: 00:05:15 / 00:05:16 (100%)[KV: 00:05:16 / 00:05:16 (100%)[KV: 00:05:16 / 00:05:17 (100%)[KV: 00:05:17 / 00:05:17 (100%)[KV: 00:05:17 / 00:05:18 (100%)[KV: 00:05:18 / 00:05:18 (100%)[KV: 00:05:18 / 00:05:19 (100%)[KV: 00:05:19 / 00:05:19 (100%)[KV: 00:05:19 / 00:05:20 (100%)[KV: 00:05:20 / 00:05:20 (100%)[KV: 00:05:20 / 00:05:21 (100%)[KV: 00:05:21 / 00:05:21 (100%)[KV: 00:05:21 / 00:05:22 (100%)[KV: 00:05:22 / 00:05:22 (100%)[KV: 00:05:22 / 00:05:23 (100%)[KV: 00:05:23 / 00:05:23 (100%)[KV: 00:05:23 / 00:05:24 (100%)[KV: 00:05:24 / 00:05:24 (100%)[KV: 00:05:24 / 00:05:25 (100%)[KV: 00:05:25 / 00:05:25 (100%)[KV: 00:05:25 / 00:05:26 (100%)[KV: 00:05:26 / 00:05:26 (100%)[KV: 00:05:26 / 00:05:27 (100%)[KV: 00:05:27 / 00:05:27 (100%)[KV: 00:05:27 / 00:05:28 (100%)[KV: 00:05:28 / 00:05:28 (100%)[KV: 00:05:28 / 00:05:29 (100%)[KV: 00:05:29 / 00:05:29 (100%)[KV: 00:05:29 / 00:05:30 (100%)[KV: 00:05:30 / 00:05:30 (100%)[KV: 00:05:30 / 00:05:31 (100%)[KV: 00:05:31 / 00:05:31 (100%)[KV: 00:05:31 / 00:05:32 (100%)[KV: 00:05:32 / 00:05:32 (100%)[KV: 00:05:32 / 00:05:33 (100%)[KV: 00:05:33 / 00:05:33 (100%)[KV: 00:05:33 / 00:05:34 (100%)[KV: 00:05:34 / 00:05:34 (100%)[KV: 00:05:34 / 00:05:35 (100%)[KV: 00:05:35 / 00:05:35 (100%)[KV: 00:05:35 / 00:05:36 (100%)[KV: 00:05:36 / 00:05:36 (100%)[KV: 00:05:36 / 00:05:37 (100%)[KV: 00:05:37 / 00:05:37 (100%)
