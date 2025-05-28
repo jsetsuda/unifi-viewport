@@ -2,11 +2,16 @@
 
 A lightweight RTSP viewer system for UniFi cameras, designed to emulate the UniFi Protect Viewport experience using a Raspberry Pi with minimal overhead.
 
-## Features
+---
+
+## 🎯 Features
+
 - Auto-launching tiled RTSP stream display
 - Automatic stream health monitoring and restart
 - Graphical layout selector and camera assignment tool
-- Low-latency `mpv` playback
+- Low-latency `mpv` playback for real-time responsiveness
+- Stream validation to ensure H.264 compatibility
+- Central `.env` configuration for easy updates
 - Works with Raspberry Pi OS Lite + minimal X11 setup
 
 ---
@@ -16,98 +21,140 @@ A lightweight RTSP viewer system for UniFi cameras, designed to emulate the UniF
 **Recommended OS:** Raspberry Pi OS Lite 64-bit (for performance and minimal footprint)
 
 ### 1. Flash Raspberry Pi OS Lite
-Use the [Raspberry Pi Imager](https://www.raspberrypi.com/software/) to install **Raspberry Pi OS Lite (64-bit)**.
+Use [Raspberry Pi Imager](https://www.raspberrypi.com/software/) to install **Raspberry Pi OS Lite (64-bit)**.
 
-### 2. Log in via SSH or directly
-Set hostname, timezone, WiFi, etc. via `raspi-config` if needed:
+### 2. Initial Setup
+Login and configure:
 ```bash
 sudo raspi-config
-```
-
-### 3. Expand Filesystem
-(Optional but recommended):
-```bash
-sudo raspi-config  # Choose: Advanced Options → Expand Filesystem
+# Set hostname, timezone, Wi-Fi, expand filesystem (optional)
 ```
 
 ---
 
 ## 🖥️ Lightweight GUI Setup (No Full Desktop Required)
 
-Install a minimal GUI stack with X11 and a lightweight window manager:
+Install a minimal X11 environment and supporting tools:
 
 ```bash
 sudo apt update && sudo apt install -y \
-  xserver-xorg x11-xserver-utils xinit openbox \
-  lightdm tk python3-tk mpv jq git curl ffmpeg
+  xserver-xorg x11-xserver-utils xinit openbox lightdm \
+  tk python3-tk mpv jq git curl ffmpeg python3-venv
 ```
 
-Enable autologin to desktop environment:
+Enable autologin:
 ```bash
 sudo raspi-config
-# System Options → Boot / Auto Login → Desktop Autologin (B4)
+# System Options → Boot / Auto Login → Desktop Autologin
 ```
 
-Set Openbox as the window manager:
+Set Openbox session:
 ```bash
 echo "openbox-session" > ~/.xsession
 ```
 
-Autostart layout chooser:
+Autostart the layout chooser GUI:
 ```bash
 mkdir -p ~/.config/openbox
 nano ~/.config/openbox/autostart
 ```
-Add this line:
+Add:
 ```bash
 python3 /home/viewport/unifi-viewport/layout_chooser.py &
 ```
 
 ---
 
-## 🚀 Project Setup
+## 🚀 Project Installation
 
-### 1. Clone the repository:
+### 1. Clone the repository
 ```bash
-sudo apt install git -y
 cd ~
 git clone https://github.com/jsetsuda/unifi-viewport.git
 cd unifi-viewport
 ```
 
-### 2. Run install script:
+### 2. Run the install script
 ```bash
 chmod +x install.sh
 ./install.sh
 ```
+This will:
+- Create a Python virtual environment
+- Install dependencies
+- Prompt you to set `.env` (host, username, password)
+- Add `.env` to `.gitignore`
 
 ---
 
-## 🔄 Reboot
+## 🔄 Reboot to Apply Changes
 ```bash
 sudo reboot
 ```
 
-The system will boot into the layout chooser GUI. After 10 seconds, it will default to the last saved layout if no interaction occurs.
+System will auto-launch the layout GUI. After 10 seconds, it defaults to the saved layout if no input is received.
 
 ---
 
-## 🧪 Development and Testing
-This system includes:
-- `layout_chooser.py`: UI to select layout and assign cameras
-- `get_streams.py`: Fetches camera info from UniFi Protect
-- `monitor_streams.py`: Monitors stream health and restarts crashed streams
-- `overlay_box.py`: Adds on-screen overlay indicators
-- `viewport.sh`: Starts and tiles all streams
+## ⚙️ `.env` Configuration
+
+All credentials are stored in `.env`:
+
+```ini
+UNIFI_HOST=https://192.168.5.10
+USERNAME=viewport
+PASSWORD=your_password
+```
+
+Never check this file into Git. It is ignored via `.gitignore`.
 
 ---
 
-## 🔐 GitHub Authentication
-GitHub requires a personal access token (PAT) instead of a password. [Generate a token here](https://github.com/settings/tokens) and use it in place of your password when pushing code.
+## 🧪 Scripts and Usage
+
+Run scripts from the virtual environment:
+
+```bash
+source .venv/bin/activate
+python get_streams.py       # Pull & validate streams
+./viewport.sh               # Launch all tile windows
+python monitor_streams.py   # (Optional) Monitor and recover dead streams
+```
 
 ---
 
-## 📂 Files Used
-- `camera_urls.json`: Auto-generated camera list
-- `viewport_config.json`: Layout config created by GUI
-- `camera_urls.txt`: (Optional) fallback text file for URLs
+## 📁 File Overview
+
+| File                     | Purpose                                      |
+|--------------------------|----------------------------------------------|
+| `install.sh`             | Installs system + Python dependencies        |
+| `.env`                   | Stores UniFi connection credentials          |
+| `.gitignore`             | Prevents secrets and layout data from commit|
+| `get_streams.py`         | Pull and validate RTSP streams from UniFi   |
+| `camera_urls.json`       | Auto-generated list of usable streams        |
+| `viewport.sh`            | Launches all streams in tiled layout        |
+| `layout_chooser.py`      | GUI to configure stream layout and mapping  |
+| `monitor_streams.py`     | Watches and restarts failed `mpv` processes |
+| `overlay_box.py`         | Stream status overlays (optional)           |
+| `viewport_config.json`   | Layout configuration saved by GUI           |
+
+---
+
+## 🧑‍💻 GitHub Setup
+
+To push changes:
+1. [Create a GitHub Personal Access Token](https://github.com/settings/tokens)
+2. Use the token in place of your GitHub password when pushing.
+
+---
+
+## 📸 Optional Screenshot
+
+_Add a screenshot of your tiled RTSP camera display here._
+
+---
+
+## 📄 License
+
+MIT License  
+© 2025 Jason Setsuda
