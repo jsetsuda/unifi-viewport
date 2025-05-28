@@ -9,29 +9,42 @@ from tkinter import ttk, messagebox
 
 CAMERA_FILE = "camera_urls.json"
 CONFIG_FILE = "viewport_config.json"
+WORKDIR = "/home/viewport/unifi-viewport"
 
-# === Fetch latest camera list ===
-time.sleep(2)
-try:
-    subprocess.run(["python3", "get_streams.py"], cwd="/home/viewport/unifi-viewport", check=True)
-except Exception as e:
-    messagebox.showerror("Error", f"Failed to fetch camera list:\n{e}")
-    exit(1)
+# === Safely fetch latest camera list ===
+def fetch_camera_list():
+    try:
+        subprocess.run(["python3", "get_streams.py"], cwd=WORKDIR, check=True)
+    except subprocess.CalledProcessError as e:
+        messagebox.showerror("Error", f"Failed to fetch camera list:\n{e}")
+        exit(1)
+
+# === Validate existing config ===
+def check_existing_config():
+    try:
+        with open(CONFIG_FILE) as f:
+            data = json.load(f)
+        return (
+            isinstance(data.get("grid"), list)
+            and isinstance(data.get("tiles"), list)
+            and len(data["grid"]) == 2
+        )
+    except Exception:
+        return False
 
 # === Load camera list ===
-try:
-    with open(CAMERA_FILE) as f:
-        cameras = json.load(f)
-
-    if not isinstance(cameras, list) or not cameras:
-        raise ValueError("No valid cameras found.")
-
-    camera_names = [cam["name"] for cam in cameras]
-    camera_map = {cam["name"]: cam["url"] for cam in cameras if cam["url"] != "None"}
-
-except Exception as e:
-    messagebox.showerror("Camera Error", f"Unable to load cameras:\n{e}")
-    exit(1)
+def load_camera_data():
+    try:
+        with open(CAMERA_FILE) as f:
+            cameras = json.load(f)
+        if not isinstance(cameras, list) or not cameras:
+            raise ValueError("No valid cameras found.")
+        camera_names = [cam["name"] for cam in cameras]
+        camera_map = {cam["name"]: cam["url"] for cam in cameras if cam["url"] != "None"}
+        return camera_names, camera_map
+    except Exception as e:
+        messagebox.showerror("Camera Error", f"Unable to load cameras:\n{e}")
+        exit(1)
 
 # === Layout Selector UI ===
 class LayoutSelector(tk.Tk):
@@ -40,49 +53,32 @@ class LayoutSelector(tk.Tk):
         self.title("Viewport Layout Chooser")
         self.geometry("400x240")
         self.grid_size = tk.IntVar(value=2)
-        self.auto_load_scheduled = False
 
         tk.Label(self, text="Select grid size (NxN):").pack(pady=(10, 0))
         tk.Scale(self, from_=1, to=4, orient="horizontal", variable=self.grid_size).pack()
 
         tk.Button(self, text="Create New Layout", command=self.select_layout).pack(pady=10)
 
-        self.has_valid_config = self.check_existing_config()
+        self.has_valid_config = check_existing_config()
 
         if self.has_valid_config:
             tk.Button(self, text="Use Last Layout", command=self.use_last_layout).pack(pady=5)
-            # Schedule auto-fallback only if config is valid
-            self.auto_load_id = self.after(10000, self.auto_load_last_layout)
-            self.auto_load_scheduled = True
-
-    def check_existing_config(self):
-        if not os.path.exists(CONFIG_FILE):
-            return False
-        try:
-            with open(CONFIG_FILE) as f:
-                data = json.load(f)
-            return isinstance(data, dict) and "grid" in data and "tiles" in data
-        except Exception:
-            return False
+            self.after(10000, self.prompt_for_default)  # 10s auto fallback
 
     def select_layout(self):
-        if self.auto_load_scheduled:
-            self.after_cancel(self.auto_load_id)
         self.withdraw()
         LayoutEditor(self.grid_size.get())
 
     def use_last_layout(self):
-        if self.auto_load_scheduled:
-            self.after_cancel(self.auto_load_id)
         self.withdraw()
         subprocess.Popen(
             ["./viewport.sh"],
-            cwd="/home/viewport/unifi-viewport",
-            stdout=open("/home/viewport/unifi-viewport/viewport.log", "a"),
+            cwd=WORKDIR,
+            stdout=open(os.path.join(WORKDIR, "viewport.log"), "a"),
             stderr=subprocess.STDOUT
         )
 
-    def auto_load_last_layout(self):
+    def prompt_for_default(self):
         if self.winfo_exists() and self.has_valid_config:
             self.use_last_layout()
 
@@ -165,11 +161,13 @@ class LayoutEditor(tk.Tk):
 
         subprocess.Popen(
             ["./viewport.sh"],
-            cwd="/home/viewport/unifi-viewport",
-            stdout=open("/home/viewport/unifi-viewport/viewport.log", "a"),
+            cwd=WORKDIR,
+            stdout=open(os.path.join(WORKDIR, "viewport.log"), "a"),
             stderr=subprocess.STDOUT
         )
 
-# === Run the app ===
+# === MAIN ===
 if __name__ == "__main__":
+    fetch_camera_list()
+    camera_names, camera_map = load_camera_data()
     LayoutSelector().mainloop()
