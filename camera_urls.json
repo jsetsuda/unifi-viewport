@@ -1,23 +1,23 @@
 #example
-[
-  {
-    "name": "Cam1",
-    "url": "rtsps://192.168.5.10:7441/rlOmM7zsM3hbv61J"
-  },
-  {
-    "name": "Cam2t",
-    "url": "rtsps://192.168.5.10:7441/lfjg1AjVC2blAPWv"
-  },
-  {
-    "name": "Cam3",
-    "url": "rtsps://192.168.5.10:7441/a6lDyXVrr3XAzBF7"
-  },
-  {
-    "name": "Cam4",
-    "url": "rtsps://192.168.5.10:7441/uJXFRswJTupVX9wO"
-  },
-  {
-    "name": "Cam5",
-    "url": "rtsps://192.168.5.10:7441/gwv2AOYyayvIukNT"
-  }
-]
+#[
+#  {
+#    "name": "Cam1",
+#    "url": "rtsps://192.168.5.10:7441/rlOmM7zsM3hbv61J"
+#  },
+#  {
+#    "name": "Cam2t",
+#    "url": "rtsps://192.168.5.10:7441/lfjg1AjVC2blAPWv"
+#  },
+#  {
+#    "name": "Cam3",
+#    "url": "rtsps://192.168.5.10:7441/a6lDyXVrr3XAzBF7"
+#  },
+#  {
+#    "name": "Cam4",
+#    "url": "rtsps://192.168.5.10:7441/uJXFRswJTupVX9wO"
+#  },
+#  {
+#    "name": "Cam5",
+#    "url": "rtsps://192.168.5.10:7441/gwv2AOYyayvIukNT"
+#  }
+#]
