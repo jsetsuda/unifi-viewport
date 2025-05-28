@@ -1,115 +1,67 @@
-# monitor_streams.py
-# Monitors stream health and restarts broken mpv windows with overlay integration, with cooldown and improved ffprobe
-
-import subprocess
+#!/usr/bin/env python3
+import os
 import time
 import json
-import os
-import signal
-from pathlib import Path
+import subprocess
 
-CONFIG_FILE = Path.home() / "unifi-viewport" / "viewport_config.json"
-LOG_FILE = Path.home() / "unifi-viewport" / "viewport.log"
-MPV_TITLE_PREFIX = "tile_"
+CONFIG_FILE = "viewport_config.json"
 CHECK_INTERVAL = 30  # seconds
-COOLDOWN_TIME = 120  # seconds
 
-# Try ffprobe or fallback to curl
-FFPROBE = "/usr/bin/ffprobe"
-CURL = "/usr/bin/curl"
-
-cooldowns = {}  # key: window_title, value: last restart timestamp
-
-def log(msg):
-    with open(LOG_FILE, "a") as f:
-        f.write(f"[MONITOR] {time.strftime('%Y-%m-%d %H:%M:%S')} - {msg}\n")
-
-def load_config():
+def is_stream_alive(url):
     try:
-        with open(CONFIG_FILE) as f:
-            return json.load(f)
-    except Exception as e:
-        log(f"Failed to read config: {e}")
-        return None
-
-def check_stream(url):
-    try:
-        if Path(FFPROBE).exists():
-            result = subprocess.run([
-                FFPROBE, "-v", "quiet", "-timeout", "5000000", "-show_streams", url
-            ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            return result.returncode == 0
-        elif Path(CURL).exists():
-            result = subprocess.run([CURL, "-m", "5", url],
-                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            return result.returncode == 0
-        else:
-            log("No stream-checking tool found.")
-            return False
-    except Exception as e:
-        log(f"Check failed: {e}")
+        result = subprocess.run(
+            ["ffprobe", "-v", "error", "-rtsp_transport", "tcp", "-i", url],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=10
+        )
+        return result.returncode == 0
+    except Exception:
         return False
 
-def restart_tile(row, col, name, url, grid):
-    window_title = f"{MPV_TITLE_PREFIX}{row}_{col}"
-    now = time.time()
-    if window_title in cooldowns and now - cooldowns[window_title] < COOLDOWN_TIME:
-        log(f"Skipping restart of {window_title} (cooldown active)")
-        return
-
-    cooldowns[window_title] = now
-    log(f"Restarting {name} at tile {row},{col}")
-    subprocess.run(["pkill", "-f", window_title])
-    subprocess.run(["pkill", "-f", f"overlay_{window_title}"])
-    time.sleep(1)
-
-    WIDTH = int(os.environ.get("WIDTH", 3840))
-    HEIGHT = int(os.environ.get("HEIGHT", 2160))
-    win_w = WIDTH // grid[1]
-    win_h = HEIGHT // grid[0]
-    x = col * win_w
-    y = row * win_h
-
+def restart_stream(title, url, x, y, width, height):
+    subprocess.run(["pkill", "-f", f"--title={title}"])
+    log_file = open("viewport.log", "a")
+    print(f"[RESTART] Restarting {title}...", file=log_file)
     subprocess.Popen([
-        "mpv", "--no-border", "--no-audio", "--no-terminal",
-        f"--geometry={win_w}x{win_h}+{x}+{y}",
-        "--profile=low-latency", "--untimed", "--rtsp-transport=tcp",
-        f"--title={window_title}",
+        "mpv",
+        "--no-border",
+        f"--geometry={width}x{height}+{x}+{y}",
+        "--profile=low-latency",
+        "--untimed",
+        "--rtsp-transport=tcp",
+        f"--title={title}",
+        "--no-audio",
         url
-    ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    ], stdout=log_file, stderr=subprocess.STDOUT)
 
-    subprocess.Popen([
-        "python3", "overlay_box.py", window_title, "green"
-    ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-if __name__ == "__main__":
+def main():
     while True:
-        config = load_config()
-        if not config:
-            time.sleep(CHECK_INTERVAL)
-            continue
+        try:
+            with open(CONFIG_FILE) as f:
+                config = json.load(f)
 
-        grid = config.get("grid", [2, 2])
+            width = int(os.environ.get("WIDTH", 3840))
+            height = int(os.environ.get("HEIGHT", 2160))
+            rows, cols = config.get("grid", [2, 2])
+            win_w = width // cols
+            win_h = height // rows
 
-        for tile in config.get("tiles", []):
-            row = tile["row"]
-            col = tile["col"]
-            name = tile["name"]
-            url = tile["url"]
+            for tile in config.get("tiles", []):
+                row, col = tile["row"], tile["col"]
+                url = tile["url"]
+                title = f"tile_{row}_{col}"
+                x = col * win_w
+                y = row * win_h
 
-            window_title = f"{MPV_TITLE_PREFIX}{row}_{col}"
+                if not is_stream_alive(url):
+                    restart_stream(title, url, x, y, win_w, win_h)
 
-            ok = check_stream(url)
-            if ok:
-                subprocess.run(["pkill", "-f", f"overlay_{window_title}"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                subprocess.Popen([
-                    "python3", "overlay_box.py", window_title, "green"
-                ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            else:
-                subprocess.run(["pkill", "-f", f"overlay_{window_title}"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                subprocess.Popen([
-                    "python3", "overlay_box.py", window_title, "red"
-                ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                restart_tile(row, col, name, url, grid)
+        except Exception as e:
+            with open("viewport.log", "a") as log:
+                log.write(f"[ERROR] {e}\n")
 
         time.sleep(CHECK_INTERVAL)
+
+if __name__ == "__main__":
+    main()
