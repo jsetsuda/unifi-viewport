@@ -1,15 +1,34 @@
 #!/usr/bin/env python3
-import requests
-import json
 import os
+import json
+import requests
+import subprocess
 import urllib3
+from dotenv import load_dotenv
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+load_dotenv()  # Load environment variables from .env
 
 # === CONFIGURATION ===
-UNIFI_HOST = "https://"  # Replace with your NVR IP
-USERNAME = "viewport"   # Replace with your local protect username
-PASSWORD = "xxxx"  # Replace with your local protect password
+UNIFI_HOST = os.getenv("UNIFI_HOST")
+USERNAME = os.getenv("USERNAME")
+PASSWORD = os.getenv("PASSWORD")
+
+
+def is_h264_stream(url):
+    try:
+        result = subprocess.run(
+            ["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
+             "stream=codec_name", "-of", "default=noprint_wrappers=1:nokey=1", url],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=5
+        )
+        codec = result.stdout.decode().strip()
+        return codec == "h264"
+    except Exception as e:
+        print(f"[WARN] Codec check failed for {url}: {e}")
+        return False
 
 
 def fetch_camera_streams():
@@ -35,8 +54,8 @@ def fetch_camera_streams():
         return []
 
     cameras = cam_resp.json()
-
     results = []
+
     for cam in cameras:
         name = cam.get("name")
         channels = cam.get("channels", [])
@@ -49,10 +68,15 @@ def fetch_camera_streams():
             continue
 
         url = f"rtsps://{UNIFI_HOST.split('//')[1]}:7441/{rtsp_id}"
-        results.append({
-            "name": name,
-            "url": url
-        })
+
+        print(f"[INFO] Checking codec for: {name}")
+        if is_h264_stream(url):
+            results.append({
+                "name": name,
+                "url": url
+            })
+        else:
+            print(f"[SKIP] {name} is not H.264")
 
     return results
 
@@ -67,7 +91,7 @@ def save_camera_list(cameras):
         f.flush()
         os.fsync(f.fileno())
 
-    print(f"[INFO] Saved {len(cameras)} camera stream(s) to camera_urls.json")
+    print(f"[INFO] Saved {len(cameras)} H.264 camera stream(s) to camera_urls.json")
 
 
 if __name__ == "__main__":
