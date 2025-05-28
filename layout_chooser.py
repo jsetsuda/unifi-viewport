@@ -40,6 +40,7 @@ class LayoutSelector(tk.Tk):
         self.title("Viewport Layout Chooser")
         self.geometry("400x240")
         self.grid_size = tk.IntVar(value=2)
+        self.auto_load_scheduled = False
 
         tk.Label(self, text="Select grid size (NxN):").pack(pady=(10, 0))
         tk.Scale(self, from_=1, to=4, orient="horizontal", variable=self.grid_size).pack()
@@ -50,23 +51,29 @@ class LayoutSelector(tk.Tk):
 
         if self.has_valid_config:
             tk.Button(self, text="Use Last Layout", command=self.use_last_layout).pack(pady=5)
-            self.after(10000, self.prompt_for_default)  # 10s auto fallback prompt
+            # Schedule auto-fallback only if config is valid
+            self.auto_load_id = self.after(10000, self.auto_load_last_layout)
+            self.auto_load_scheduled = True
 
     def check_existing_config(self):
-        try:
-            if os.path.exists(CONFIG_FILE):
-                with open(CONFIG_FILE) as f:
-                    cfg = json.load(f)
-                return isinstance(cfg, dict) and "grid" in cfg and "tiles" in cfg
-        except:
+        if not os.path.exists(CONFIG_FILE):
             return False
-        return False
+        try:
+            with open(CONFIG_FILE) as f:
+                data = json.load(f)
+            return isinstance(data, dict) and "grid" in data and "tiles" in data
+        except Exception:
+            return False
 
     def select_layout(self):
+        if self.auto_load_scheduled:
+            self.after_cancel(self.auto_load_id)
         self.withdraw()
         LayoutEditor(self.grid_size.get())
 
     def use_last_layout(self):
+        if self.auto_load_scheduled:
+            self.after_cancel(self.auto_load_id)
         self.withdraw()
         subprocess.Popen(
             ["./viewport.sh"],
@@ -75,14 +82,9 @@ class LayoutSelector(tk.Tk):
             stderr=subprocess.STDOUT
         )
 
-    def prompt_for_default(self):
+    def auto_load_last_layout(self):
         if self.winfo_exists() and self.has_valid_config:
-            use_last = messagebox.askyesno(
-                "Load Saved Layout?",
-                "Would you like to automatically load your last saved layout?"
-            )
-            if use_last:
-                self.use_last_layout()
+            self.use_last_layout()
 
 # === Camera Grid Assignment UI ===
 class LayoutEditor(tk.Tk):
