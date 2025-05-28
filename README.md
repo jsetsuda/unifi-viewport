@@ -99,3 +99,26 @@ GitHub requires a personal access token (PAT) instead of a password. [Generate a
 - `camera_urls.json`: Auto-generated camera list
 - `viewport_config.json`: Layout config created by GUI
 - `camera_urls.txt`: (Optional) fallback text file for URLs
+
+---
+
+## 🔧 Configuring UniFi Protect for RTSP H.264 Streams
+
+To ensure compatibility and optimal performance with this project, you should configure each camera in UniFi Protect to expose an H.264 RTSP stream. Here's how:
+
+1. Open the **UniFi Protect** web interface.
+2. Click on the desired camera.
+3. Go to the **Settings** (gear icon).
+4. Navigate to **Advanced** > check the desired resolution for RTSPS stream.
+5. Enable one of the streams (typically "High", "Medium", or "Low") with **H.264** encoding.
+6. Note: Under **"Recording Settings"** go to Recording Quality and under Encoding click "Standard" to allow H.264 instead of H.265 (currently issues with this codec)
+7. Make note of the stream label (e.g., `rtspAlias`) or confirm its availability using the `get_streams.py` script.
+
+> ⚠️ Avoid using HEVC (H.265) streams unless you are certain your Raspberry Pi can handle them with hardware acceleration, as this may cause decoding errors.
+
+After updating the settings, rerun:
+```bash
+source .venv/bin/activate
+python get_streams.py
+```
+to regenerate your `camera_urls.json` with updated stream URLs.
