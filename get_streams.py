@@ -95,5 +95,11 @@ def save_camera_list(cameras):
 
 
 if __name__ == "__main__":
-    cams = fetch_camera_streams()
-    save_camera_list(cams)
+    try:
+        cams = fetch_camera_streams()
+        save_camera_list(cams)
+        print("[INFO] Camera fetch and save completed successfully.")
+    except Exception as e:
+        print(f"[ERROR] Unhandled exception: {e}")
+        exit(1)
+
