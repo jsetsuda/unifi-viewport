@@ -3,13 +3,11 @@ set -e
 
 echo "== UniFi Viewport GUI Setup =="
 
-# Ensure we're in project root
+# Ensure we're in the project root
 cd "$(dirname "$0")"
 
 echo "[INFO] Installing GUI and display dependencies..."
-
 sudo apt update
-
 sudo apt install -y \
   openbox \
   lightdm \
@@ -23,10 +21,16 @@ sudo apt install -y \
   lxappearance \
   gtk2-engines-pixbuf
 
-echo "[INFO] Configuring LightDM to autologin as 'viewport'..."
+# Create 'viewport' user if it doesn't exist
+if ! id "viewport" &>/dev/null; then
+  echo "[INFO] Creating 'viewport' user..."
+  sudo useradd -m -s /bin/bash viewport
+  echo "viewport:viewport" | sudo chpasswd
+  sudo usermod -aG sudo viewport
+fi
 
+echo "[INFO] Configuring LightDM for autologin..."
 sudo mkdir -p /etc/lightdm/lightdm.conf.d
-
 cat <<EOF | sudo tee /etc/lightdm/lightdm.conf.d/50-viewport.conf
 [Seat:*]
 autologin-user=viewport
@@ -35,11 +39,10 @@ autologin-session=openbox
 user-session=openbox
 EOF
 
-echo "[INFO] Creating Openbox autostart script for viewport..."
+echo "[INFO] Creating Openbox autostart script..."
+sudo -u viewport mkdir -p /home/viewport/.config/openbox
 
-mkdir -p /home/viewport/.config/openbox
-
-cat <<'EOF' > /home/viewport/.config/openbox/autostart
+cat <<'EOF' | sudo tee /home/viewport/.config/openbox/autostart > /dev/null
 #!/bin/bash
 xset s off
 xset -dpms
@@ -49,7 +52,8 @@ cd /home/viewport/unifi-viewport
 python3 layout_chooser.py &
 EOF
 
-chmod +x /home/viewport/.config/openbox/autostart
-chown -R viewport:viewport /home/viewport/.config/openbox
+sudo chmod +x /home/viewport/.config/openbox/autostart
+sudo chown -R viewport:viewport /home/viewport/.config/openbox
 
-echo "[SUCCESS] GUI environment configured. On reboot, the system will launch the layout chooser automatically."
+echo "[SUCCESS] GUI environment configured."
+echo "On next reboot, the system will auto-login as 'viewport' and launch the layout chooser."
