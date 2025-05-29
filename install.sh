@@ -29,7 +29,13 @@ echo "[INFO] Installing Python packages globally with --break-system-packages...
 pip3 install --break-system-packages \
   python-dotenv \
   requests \
-  uiprotect
+  psutil
+
+# Clean up deprecated packages
+if pip3 show uiprotect &>/dev/null; then
+  echo "[INFO] Removing deprecated uiprotect package..."
+  pip3 uninstall -y uiprotect
+fi
 
 # Create .env if not present
 if [ ! -f .env ]; then
@@ -55,5 +61,5 @@ if ! grep -q "^.env$" .gitignore; then
   echo "[INFO] .env added to .gitignore"
 fi
 
-echo "[SUCCESS] Setup complete. You can now run:"
-echo "  python3 get_streams.py"
+echo "[✅ SUCCESS] Setup complete. You can now run:"
+echo "  ./layout_chooser.py"
