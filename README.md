@@ -27,11 +27,22 @@ sudo raspi-config
 sudo raspi-config  # Choose: Advanced Options → Expand Filesystem
 ```
 
+### 4. Clone the GitHub Repository
+
+Ensure you have Git installed, then clone the project:
+
+```bash
+sudo apt install git -y
+cd ~
+git clone https://github.com/jsetsuda/unifi-viewport.git
+cd unifi-viewport
+```
+
 ---
 
 ## 📦 Installation Options
 
-### 🅰️ Option 1: System-Wide Install (Recommended for Raspberry Pi)
+### 🅰️ Step 1 - Option 1: System-Wide Install (Recommended for Raspberry Pi)
 
 ```bash
 chmod +x install.sh
@@ -49,7 +60,7 @@ This installs required system packages and Python dependencies globally. It will
 
 ---
 
-### 🅱️ Option 2: Isolated Virtualenv Install (Recommended for Developers)
+### 🅱️ Step 1 - Option 2: Isolated Virtualenv Install (Recommended for Developers)
 
 ```bash
 chmod +x pipinstall.sh
@@ -67,7 +78,7 @@ This method avoids installing Python packages globally by using a virtual enviro
 
 ---
 
-### 🅰️ Option 3: GUI Autostart Setup (Optional)
+### 🅾️ Step 2: GUI Autostart Setup (Optional if full desktop or GUI already installed and active)
 
 ```bash
 chmod +x installgui.sh
@@ -89,7 +100,7 @@ sudo raspi-config
 
 ## 🚀 First Run
 
-Once installed, launch the layout selector to configure your grid:
+Once installed, launch the layout selector to configure your grid (must be done on pi, not SSH):
 
 ```bash
 ./layout_chooser.py
