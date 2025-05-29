@@ -4,6 +4,7 @@ import json
 import requests
 import subprocess
 from dotenv import load_dotenv
+import math
 
 UFP_API = "/proxy/protect/api/cameras"
 CAMERA_JSON = "camera_urls.json"
@@ -22,6 +23,13 @@ def ffprobe_info(rtsp_url):
         data = json.loads(result.stdout)
         stream = data["streams"][0] if data["streams"] else {}
 
+        fps_raw = stream.get("avg_frame_rate", "0/1")
+        try:
+            num, denom = map(int, fps_raw.split("/"))
+            fps = round(num / denom, 2) if denom else 0
+        except:
+            fps = 0
+
         return {
             "width": stream.get("width"),
             "height": stream.get("height"),
@@ -29,7 +37,7 @@ def ffprobe_info(rtsp_url):
             "profile": stream.get("profile"),
             "pix_fmt": stream.get("pix_fmt"),
             "bit_rate": stream.get("bit_rate"),
-            "fps": stream.get("avg_frame_rate")
+            "fps": fps
         }
 
     except Exception as e:
@@ -67,9 +75,8 @@ def get_rtsp_streams():
 
     streams = []
     tiles = []
-    row, col = 0, 0
 
-    for cam in cameras:
+    for index, cam in enumerate(cameras):
         if not cam.get("isConnected"):
             continue
 
@@ -90,28 +97,36 @@ def get_rtsp_streams():
         }
         streams.append(entry)
 
+    if not streams:
+        print("[WARN] No streams detected.")
+        return
+
+    # Auto-calculate grid size (square-ish)
+    count = len(streams)
+    rows = int(math.sqrt(count))
+    cols = math.ceil(count / rows)
+
+    for idx, stream in enumerate(streams):
+        row = idx // cols
+        col = idx % cols
+        resolution = f"({stream['width']}x{stream['height']})" if stream.get("width") and stream.get("height") else ""
         tiles.append({
             "row": row,
             "col": col,
-            "name": f"{name} ({meta.get('width')}x{meta.get('height')})",
-            "url": url
+            "name": f"{stream['name']} {resolution}".strip(),
+            "url": stream["url"]
         })
-
-        col += 1
-        if col > 1:
-            col = 0
-            row += 1
 
     with open(CAMERA_JSON, "w") as f:
         json.dump(streams, f, indent=2)
 
     with open(CONFIG_JSON, "w") as f:
         json.dump({
-            "grid": [2, 2],
+            "grid": [rows, cols],
             "tiles": tiles
         }, f, indent=2)
 
-    print(f"[SUCCESS] Saved {len(streams)} camera streams to {CAMERA_JSON} and {CONFIG_JSON}")
+    print(f"[SUCCESS] Saved {len(streams)} camera streams to {CAMERA_JSON} and layout to {CONFIG_JSON}")
 
 if __name__ == "__main__":
     get_rtsp_streams()
