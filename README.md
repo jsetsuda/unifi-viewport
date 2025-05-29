@@ -62,7 +62,12 @@ This script will:
 - Prompt for UniFi Protect credentials to create `.env`
 - Configure automatic launch of the layout selector
 
-💡 After setup, reboot the Pi and it will boot directly into the RTSP viewer GUI.
+💡 After setup, reboot the Pi and enter raspi-config, change boot to GUI, then set autologin to yes for cmd and GUI, reboot. It will boot directly into the RTSP viewer GUI. You may need to manually run get_streams.py after initial install to generate the json files:
+
+```bash
+cd unifi-viewport
+./get_streams.py
+```
 
 **Best for:** Clean Raspberry Pi Lite OS (64-bit) installs with no desktop environment.
 
