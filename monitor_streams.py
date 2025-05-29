@@ -12,10 +12,6 @@ LOG_FILE = "monitor.log"
 CHECK_INTERVAL = 10  # seconds
 RESTART_DELAY = 30   # seconds
 MAX_RESTART_ATTEMPTS = 3
-SCREEN_WIDTH = 3840
-SCREEN_HEIGHT = 2160
-TILE_ROWS = 2
-TILE_COLS = 2
 
 # Setup logging
 logging.basicConfig(
@@ -45,14 +41,21 @@ def is_process_running(title):
             continue
     return False
 
-def calculate_geometry(tile):
-    tile_width = SCREEN_WIDTH // TILE_COLS
-    tile_height = SCREEN_HEIGHT // TILE_ROWS
+def calculate_geometry(tile, screen_width, screen_height, rows, cols):
+    tile_width = screen_width // cols
+    tile_height = screen_height // rows
     x = tile["col"] * tile_width
     y = tile["row"] * tile_height
     return x, y, tile_width, tile_height
 
-def restart_stream(tile, restart_attempts):
+def parse_fps_string(fps_str):
+    try:
+        num, denom = fps_str.split('/')
+        return round(float(num) / float(denom))
+    except Exception:
+        return None
+
+def restart_stream(tile, restart_attempts, screen_width, screen_height, rows, cols):
     title = f"tile_{tile['row']}_{tile['col']}"
     if restart_attempts.get(title, 0) >= MAX_RESTART_ATTEMPTS:
         logging.warning(f"Max restart attempts reached for {title}. Skipping restart.")
@@ -60,26 +63,26 @@ def restart_stream(tile, restart_attempts):
 
     logging.info(f"Restarting stream: {tile['name']} at position ({tile['row']}, {tile['col']})")
     try:
-        x, y, width, height = calculate_geometry(tile)
-        url = tile['url'].replace("rtsps:", "rtsp:")
-
-        subprocess.Popen([
+        x, y, width, height = calculate_geometry(tile, screen_width, screen_height, rows, cols)
+        cmd = [
             "mpv",
             "--no-border",
             f"--geometry={width}x{height}+{x}+{y}",
             "--profile=low-latency",
-            "--untimed",
             "--rtsp-transport=tcp",
             "--loop=inf",
             "--no-resume-playback",
-            "--no-cache",
-            "--demuxer-readahead-secs=1",
-            "--fps=15",
-            "--force-seekable=yes",
             f"--title={title}",
             "--no-audio",
-            url
-        ])
+            "--video-sync=display-resample"
+        ]
+
+        # Add FPS if available
+        if "fps" in tile and tile["fps"]:
+            cmd.append(f"--fps={tile['fps']}")
+
+        cmd.append(tile['url'])
+        subprocess.Popen(cmd)
         restart_attempts[title] = restart_attempts.get(title, 0) + 1
         time.sleep(RESTART_DELAY)
     except Exception as e:
@@ -91,9 +94,18 @@ def main():
         return
 
     tiles = config.get("tiles", [])
+    rows, cols = config.get("grid", [2, 2])
     if not tiles:
         logging.error("No tiles found in configuration.")
         return
+
+    # Detect screen resolution
+    try:
+        screen_info = subprocess.check_output("xdpyinfo | awk '/dimensions:/ {print $2}'", shell=True).decode().strip()
+        screen_width, screen_height = map(int, screen_info.split('x'))
+    except Exception as e:
+        logging.error(f"Unable to determine screen resolution: {e}")
+        screen_width, screen_height = 1920, 1080  # fallback
 
     restart_attempts = {}
 
@@ -101,7 +113,7 @@ def main():
         for tile in tiles:
             title = f"tile_{tile['row']}_{tile['col']}"
             if not is_process_running(title):
-                restart_stream(tile, restart_attempts)
+                restart_stream(tile, restart_attempts, screen_width, screen_height, rows, cols)
             else:
                 restart_attempts[title] = 0  # Reset counter if running
         time.sleep(CHECK_INTERVAL)
