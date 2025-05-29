@@ -9,7 +9,7 @@ CONFIG_FILE = "viewport_config.json"
 LOG_FILE = "viewport.log"
 MPV_BIN = "/usr/bin/mpv"
 CHECK_INTERVAL = 5  # seconds to check all tiles
-RESTART_COOLDOWN = 15  # seconds between restarts per tile
+RESTART_COOLDOWN = 5  # seconds between restarts per tile
 
 # Track last restart times per tile
 last_restart = {}
