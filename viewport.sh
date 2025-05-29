@@ -45,7 +45,7 @@ fi
 WIN_W=$((WIDTH / COLS))
 WIN_H=$((HEIGHT / ROWS))
 
-# Kill existing MPV instances
+# Kill any existing MPV instances
 pkill -9 mpv >> "$LOG_FILE" 2>&1
 
 # Launch each stream
@@ -73,8 +73,8 @@ $JQ -c '.tiles[]' "$CONFIG_FILE" | while read -r tile; do
        --profile=low-latency --untimed --rtsp-transport=tcp \
        --loop=inf --no-resume-playback \
        --no-cache --demuxer-readahead-secs=1 \
-       --fps=15 --force-seekable=yes \
-       --vo=sdl \
+       --fps=24 --force-seekable=yes \
+       --vo=gpu --hwdec=auto \
        --title="$TITLE" --no-audio "$URL" >> "$LOG_FILE" 2>&1 &
 done
 
