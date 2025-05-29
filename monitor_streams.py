@@ -12,6 +12,10 @@ LOG_FILE = "monitor.log"
 CHECK_INTERVAL = 10  # seconds
 RESTART_DELAY = 30   # seconds
 MAX_RESTART_ATTEMPTS = 3
+SCREEN_WIDTH = 3840
+SCREEN_HEIGHT = 2160
+TILE_ROWS = 2
+TILE_COLS = 2
 
 # Setup logging
 logging.basicConfig(
@@ -41,6 +45,13 @@ def is_process_running(title):
             continue
     return False
 
+def calculate_geometry(tile):
+    tile_width = SCREEN_WIDTH // TILE_COLS
+    tile_height = SCREEN_HEIGHT // TILE_ROWS
+    x = tile["col"] * tile_width
+    y = tile["row"] * tile_height
+    return x, y, tile_width, tile_height
+
 def restart_stream(tile, restart_attempts):
     title = f"tile_{tile['row']}_{tile['col']}"
     if restart_attempts.get(title, 0) >= MAX_RESTART_ATTEMPTS:
@@ -49,10 +60,11 @@ def restart_stream(tile, restart_attempts):
 
     logging.info(f"Restarting stream: {tile['name']} at position ({tile['row']}, {tile['col']})")
     try:
+        x, y, width, height = calculate_geometry(tile)
         subprocess.Popen([
             "mpv",
             "--no-border",
-            f"--geometry={tile['width']}x{tile['height']}+{tile['x']}+{tile['y']}",
+            f"--geometry={width}x{height}+{x}+{y}",
             "--profile=low-latency",
             "--untimed",
             "--rtsp-transport=tcp",
