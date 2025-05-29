@@ -31,24 +31,23 @@ pip3 install --break-system-packages \
   requests \
   psutil
 
-# Clean up deprecated packages
-if pip3 show uiprotect &>/dev/null; then
-  echo "[INFO] Removing deprecated uiprotect package..."
-  pip3 uninstall -y uiprotect
-fi
-
-# Create .env if not present
+# === Prompt user for .env values ===
 if [ ! -f .env ]; then
-  echo "[INFO] Creating .env template..."
+  echo "[INFO] Let's configure your UniFi Protect connection:"
+  read -rp "Enter UFP_HOST (e.g. https://192.168.5.10): " UFP_HOST
+  read -rp "Enter UFP_USERNAME: " UFP_USERNAME
+  read -rsp "Enter UFP_PASSWORD: " UFP_PASSWORD
+  echo
+
   cat <<EOF > .env
-# UniFi Protect API credentials
-UFP_HOST=https://192.168.5.10
-UFP_USERNAME=your_username
-UFP_PASSWORD=your_password
+UFP_HOST=$UFP_HOST
+UFP_USERNAME=$UFP_USERNAME
+UFP_PASSWORD=$UFP_PASSWORD
 EOF
-  echo "[INFO] .env file created. Please edit it with your UniFi Protect login info."
+
+  echo "[INFO] .env file created with your credentials."
 else
-  echo "[INFO] .env file already exists, skipping creation."
+  echo "[INFO] .env file already exists, skipping prompt."
 fi
 
 # Add .env to .gitignore if missing
@@ -60,6 +59,9 @@ if ! grep -q "^.env$" .gitignore; then
   echo ".env" >> .gitignore
   echo "[INFO] .env added to .gitignore"
 fi
+
+# Mark scripts executable
+chmod +x get_streams.py layout_chooser.py viewport.sh
 
 echo "[✅ SUCCESS] Setup complete. You can now run:"
 echo "  ./layout_chooser.py"
