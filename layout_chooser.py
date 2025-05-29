@@ -24,7 +24,28 @@ def fetch_camera_list():
         print(result.stdout)
     except subprocess.CalledProcessError as e:
         print(f"[WARN] get_streams.py failed:\n{e.output}")
-        # Silently fallback to cached camera list
+
+
+def inject_metadata_into_config():
+    try:
+        with open(CAMERA_FILE, "r") as f:
+            camera_list = json.load(f)
+        camera_map = {cam["name"]: cam for cam in camera_list if "name" in cam}
+    except Exception as e:
+        print(f"[ERROR] Failed to load {CAMERA_FILE}: {e}")
+        return
+
+    try:
+        with open(CONFIG_FILE, "r") as f:
+            config = json.load(f)
+        for tile in config.get("tiles", []):
+            meta = camera_map.get(tile["name"])
+            if meta:
+                tile.update({k: meta[k] for k in ("width", "height", "fps", "codec_name", "pix_fmt", "profile") if k in meta})
+        with open(CONFIG_FILE, "w") as f:
+            json.dump(config, f, indent=2)
+    except Exception as e:
+        print(f"[ERROR] Failed to update {CONFIG_FILE} with metadata: {e}")
 
 
 # Fetch camera list
@@ -40,7 +61,6 @@ try:
         cameras = json.load(f)
     if not isinstance(cameras, list) or not cameras:
         raise ValueError("Camera list is empty.")
-    # Sort and prefer 1920x1080 or 1280x720 for auto-fill
     camera_names = sorted([cam["name"] for cam in cameras])
     preferred = [name for name in camera_names if "(1920x1080)" in name or "(1280x720)" in name]
     camera_map = {cam["name"]: cam["url"] for cam in cameras if cam.get("url")}
@@ -48,7 +68,6 @@ except Exception as e:
     messagebox.showwarning("Camera Load Warning", f"Unable to load cameras:\n{e}")
 
 
-# === Layout Selector UI ===
 class LayoutSelector(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -65,7 +84,7 @@ class LayoutSelector(tk.Tk):
 
         if self.has_valid_config:
             tk.Button(self, text="Use Last Layout", command=self.use_last_layout).pack(pady=5)
-            self.after(10000, self.prompt_for_default)  # 10s auto fallback prompt
+            self.after(10000, self.prompt_for_default)
 
     def check_existing_config(self):
         try:
@@ -95,7 +114,6 @@ class LayoutSelector(tk.Tk):
             self.use_last_layout()
 
 
-# === Camera Grid Assignment UI ===
 class LayoutEditor(tk.Tk):
     def __init__(self, size):
         super().__init__()
@@ -106,7 +124,6 @@ class LayoutEditor(tk.Tk):
         frame = tk.Frame(self)
         frame.pack(padx=10, pady=10)
 
-        # Prefer higher-resolution streams for auto-fill
         flat = preferred[:size * size] or camera_names[:size * size]
         for r in range(size):
             for c in range(size):
@@ -167,6 +184,8 @@ class LayoutEditor(tk.Tk):
             messagebox.showerror("Error", f"Failed to save config:\n{e}")
             return
 
+        inject_metadata_into_config()
+
         messagebox.showinfo("Saved", "Layout saved. Launching viewer...")
         self.destroy()
 
@@ -178,6 +197,5 @@ class LayoutEditor(tk.Tk):
         )
 
 
-# === Run the app ===
 if __name__ == "__main__":
     LayoutSelector().mainloop()
