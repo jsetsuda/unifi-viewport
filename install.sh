@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "== UniFi RTSP Viewport Installer =="
+echo "== UniFi RTSP Viewport Installer (GUI OS Preinstalled) =="
 
 # Ensure script is run from project root
 cd "$(dirname "$0")"
@@ -25,11 +25,12 @@ sudo apt install -y \
   xdotool \
   git
 
-echo "[INFO] Installing Python packages globally with --break-system-packages..."
+echo "[INFO] Installing Python packages globally (with --break-system-packages)..."
 pip3 install --break-system-packages \
   python-dotenv \
   requests \
-  psutil
+  psutil \
+  uiprotect
 
 # === Prompt user for .env values ===
 if [ ! -f .env ]; then
@@ -63,5 +64,7 @@ fi
 # Mark scripts executable
 chmod +x get_streams.py layout_chooser.py viewport.sh
 
-echo "[✅ SUCCESS] Setup complete. You can now run:"
+echo
+echo "[✅ SUCCESS] Setup complete!"
+echo "You can now run the layout chooser with:"
 echo "  ./layout_chooser.py"
