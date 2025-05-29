@@ -3,52 +3,67 @@ import subprocess
 import json
 import os
 import psutil
+import re
 
 CONFIG_FILE = "viewport_config.json"
 LOG_FILE = "viewport.log"
 MPV_BIN = "/usr/bin/mpv"
-CHECK_INTERVAL = 30  # seconds
-WIN_W = None
-WIN_H = None
+CHECK_INTERVAL = 5  # seconds to check all tiles
+RESTART_COOLDOWN = 15  # seconds between restarts per tile
+
+# Track last restart times per tile
+last_restart = {}
 
 def log(msg):
     with open(LOG_FILE, "a") as f:
         f.write(f"[MONITOR] {msg}\n")
 
 def get_screen_resolution():
-    output = subprocess.check_output(["xdpyinfo"]).decode()
-    for line in output.splitlines():
-        if "dimensions:" in line:
-            dims = line.split()[1]
-            width, height = map(int, dims.split("x"))
-            return width, height
+    try:
+        output = subprocess.check_output(["xdpyinfo"]).decode()
+        for line in output.splitlines():
+            if "dimensions:" in line:
+                dims = line.split()[1]
+                width, height = map(int, dims.split("x"))
+                return width, height
+    except Exception as e:
+        log(f"xdpyinfo error: {e}")
     return 1920, 1080  # fallback
+
+def get_grid_dimensions():
+    with open(CONFIG_FILE) as f:
+        config = json.load(f)
+        return config["grid"]
 
 def is_process_running(title):
     for proc in psutil.process_iter(attrs=["cmdline"]):
-        cmdline = proc.info.get("cmdline")
-        if cmdline and any(title in arg for arg in cmdline):
-            return True
+        try:
+            cmdline = proc.info.get("cmdline")
+            if cmdline and any(title in arg for arg in cmdline):
+                return True
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
     return False
 
 def launch_stream(row, col, name, url):
-    global WIN_W, WIN_H
-
     width, height = get_screen_resolution()
     grid_rows, grid_cols = get_grid_dimensions()
-    WIN_W = width // grid_cols
-    WIN_H = height // grid_rows
+    win_w = width // grid_cols
+    win_h = height // grid_rows
 
-    x = col * WIN_W
-    y = row * WIN_H
+    x = col * win_w
+    y = row * win_h
     title = f"tile_{row}_{col}"
-    url = url.replace("rtsps://", "rtsp://")
+
+    # Convert RTSPS to RTSP and port
+    url = re.sub(r"rtsps://([^:/]+):7441", r"rtsp://\1:7447", url)
 
     log(f"Restarting stream: {name} ({url}) at {x},{y} as {title}")
+
     cmd = [
         MPV_BIN,
         "--no-border",
-        f"--geometry={WIN_W}x{WIN_H}+{x}+{y}",
+        f"--geometry={win_w}x{win_h}+{x}+{y}",
         "--profile=low-latency",
         "--untimed",
         "--rtsp-transport=tcp",
@@ -64,32 +79,29 @@ def launch_stream(row, col, name, url):
         url
     ]
     subprocess.Popen(cmd, stdout=open(LOG_FILE, "a"), stderr=subprocess.STDOUT)
-
-def get_grid_dimensions():
-    with open(CONFIG_FILE) as f:
-        config = json.load(f)
-        return config["grid"]
-
-def load_config():
-    with open(CONFIG_FILE) as f:
-        return json.load(f)
+    last_restart[title] = time.time()
 
 def main():
     log("Stream monitor started.")
     while True:
         try:
-            config = load_config()
-            for tile in config["tiles"]:
-                row = tile["row"]
-                col = tile["col"]
-                name = tile["name"]
-                url = tile["url"]
+            with open(CONFIG_FILE) as f:
+                config = json.load(f)
+
+            for tile in config.get("tiles", []):
+                row = tile.get("row")
+                col = tile.get("col")
+                name = tile.get("name")
+                url = tile.get("url")
                 title = f"tile_{row}_{col}"
 
                 if not url or url == "null":
                     continue
 
-                if not is_process_running(title):
+                now = time.time()
+                cooldown_passed = (now - last_restart.get(title, 0)) >= RESTART_COOLDOWN
+
+                if not is_process_running(title) and cooldown_passed:
                     launch_stream(row, col, name, url)
 
         except Exception as e:
