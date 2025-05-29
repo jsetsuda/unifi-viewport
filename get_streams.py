@@ -1,49 +1,61 @@
 #!/usr/bin/env python3
 import os
 import json
+import requests
 from dotenv import load_dotenv
-from unifi.protect import ProtectApiClient
-from unifi.protect.exceptions import NvrError
 
-# Load .env values
 load_dotenv()
-HOST = os.getenv("UNIFI_HOST")
-USER = os.getenv("UNIFI_USER")
-PASS = os.getenv("UNIFI_PASS")
 
-if not all([HOST, USER, PASS]):
-    raise Exception("UNIFI_HOST, UNIFI_USER, and UNIFI_PASS must be set in .env")
+HOST = os.getenv("UFP_HOST")
+USERNAME = os.getenv("UFP_USERNAME")
+PASSWORD = os.getenv("UFP_PASSWORD")
 
-print("[INFO] Connecting to UniFi Protect...")
-try:
-    protect = ProtectApiClient(
-        host=HOST.replace("https://", ""),
-        username=USER,
-        password=PASS,
-        port=443,
-        verify_ssl=False,
-    )
-    protect.update()  # Load initial data
+if not all([HOST, USERNAME, PASSWORD]):
+    raise Exception("UFP_HOST, UFP_USERNAME, and UFP_PASSWORD must be set in .env")
 
-    camera_list = []
-    for cam in protect.bootstrap.cameras.values():
-        if cam.channels:
-            for ch in cam.channels:
-                if ch.is_rtsp_enabled and ch.rtsp_alias:
-                    rtsp_url = f"rtsps://{HOST.replace('https://', '')}:7441/{ch.rtsp_alias}"
-                    # Convert rtsps:7441 → rtsp:7447 for mpv
-                    rtsp_url = rtsp_url.replace("rtsps://", "rtsp://").replace(":7441", ":7447")
-                    camera_list.append({
-                        "name": cam.name,
-                        "url": rtsp_url
-                    })
-                    break  # Only grab first working RTSP stream
-except NvrError as e:
-    print(f"[ERROR] Failed to connect to UniFi Protect: {e}")
-    exit(1)
+session = requests.Session()
+session.verify = False  # Disable SSL verification for local NVRs
 
-# Save to file
+print("[INFO] Authenticating with UniFi Protect...")
+
+# Get authentication token
+auth_resp = session.post(
+    f"{HOST}/api/auth/login",
+    json={"username": USERNAME, "password": PASSWORD}
+)
+
+if auth_resp.status_code != 200:
+    raise Exception(f"[ERROR] Login failed: {auth_resp.status_code} {auth_resp.text}")
+
+# Confirm token set
+token = auth_resp.cookies.get("TOKEN")
+if not token:
+    raise Exception("[ERROR] Failed to retrieve auth token.")
+
+session.cookies.set("TOKEN", token)
+
+# Get camera list
+print("[INFO] Fetching camera list...")
+cam_resp = session.get(f"{HOST}/proxy/protect/api/cameras")
+
+if cam_resp.status_code != 200:
+    raise Exception(f"[ERROR] Failed to fetch cameras: {cam_resp.status_code} {cam_resp.text}")
+
+cameras = cam_resp.json()
+output = []
+
+for cam in cameras:
+    name = cam.get("name")
+    channels = cam.get("channels", [])
+
+    for ch in channels:
+        if ch.get("isRtspEnabled") and ch.get("rtspAlias"):
+            rtsp_url = f"rtsp://{HOST.replace('https://', '').replace('http://', '')}:7447/{ch['rtspAlias']}"
+            output.append({"name": name, "url": rtsp_url})
+            break  # Only take first working channel
+
+# Write to file
 with open("camera_urls.json", "w") as f:
-    json.dump(camera_list, f, indent=2)
+    json.dump(output, f, indent=2)
 
-print(f"[SUCCESS] Saved {len(camera_list)} camera streams to camera_urls.json")
+print(f"[SUCCESS] Saved {len(output)} camera streams to camera_urls.json")
