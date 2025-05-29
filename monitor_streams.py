@@ -3,64 +3,89 @@ import os
 import time
 import json
 import subprocess
+import logging
+import psutil
 
+# Configuration
 CONFIG_FILE = "viewport_config.json"
-CHECK_INTERVAL = 30  # seconds
+LOG_FILE = "monitor.log"
+CHECK_INTERVAL = 10  # seconds
+RESTART_DELAY = 30   # seconds
+MAX_RESTART_ATTEMPTS = 3
 
-def is_stream_alive(url):
+# Setup logging
+logging.basicConfig(
+    filename=LOG_FILE,
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
+
+def load_config():
+    if not os.path.isfile(CONFIG_FILE):
+        logging.error(f"Configuration file {CONFIG_FILE} not found.")
+        return None
     try:
-        result = subprocess.run(
-            ["ffprobe", "-v", "error", "-rtsp_transport", "tcp", "-i", url],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            timeout=10
-        )
-        return result.returncode == 0
-    except Exception:
-        return False
+        with open(CONFIG_FILE, "r") as f:
+            config = json.load(f)
+        return config
+    except json.JSONDecodeError as e:
+        logging.error(f"Error decoding JSON from {CONFIG_FILE}: {e}")
+        return None
 
-def restart_stream(title, url, x, y, width, height):
-    subprocess.run(["pkill", "-f", f"--title={title}"])
-    log_file = open("viewport.log", "a")
-    print(f"[RESTART] Restarting {title}...", file=log_file)
-    subprocess.Popen([
-        "mpv",
-        "--no-border",
-        f"--geometry={width}x{height}+{x}+{y}",
-        "--profile=low-latency",
-        "--untimed",
-        "--rtsp-transport=tcp",
-        f"--title={title}",
-        "--no-audio",
-        url
-    ], stdout=log_file, stderr=subprocess.STDOUT)
+def is_process_running(title):
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        try:
+            if title in proc.info['cmdline']:
+                return True
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            continue
+    return False
+
+def restart_stream(tile, restart_attempts):
+    title = f"tile_{tile['row']}_{tile['col']}"
+    if restart_attempts.get(title, 0) >= MAX_RESTART_ATTEMPTS:
+        logging.warning(f"Max restart attempts reached for {title}. Skipping restart.")
+        return
+
+    logging.info(f"Restarting stream: {tile['name']} at position ({tile['row']}, {tile['col']})")
+    try:
+        subprocess.Popen([
+            "mpv",
+            "--no-border",
+            f"--geometry={tile['width']}x{tile['height']}+{tile['x']}+{tile['y']}",
+            "--profile=low-latency",
+            "--untimed",
+            "--rtsp-transport=tcp",
+            "--loop=inf",
+            "--no-resume-playback",
+            f"--title={title}",
+            "--no-audio",
+            tile['url']
+        ])
+        restart_attempts[title] = restart_attempts.get(title, 0) + 1
+        time.sleep(RESTART_DELAY)
+    except Exception as e:
+        logging.error(f"Failed to restart stream {title}: {e}")
 
 def main():
+    config = load_config()
+    if not config:
+        return
+
+    tiles = config.get("tiles", [])
+    if not tiles:
+        logging.error("No tiles found in configuration.")
+        return
+
+    restart_attempts = {}
+
     while True:
-        try:
-            with open(CONFIG_FILE) as f:
-                config = json.load(f)
-
-            width = int(os.environ.get("WIDTH", 3840))
-            height = int(os.environ.get("HEIGHT", 2160))
-            rows, cols = config.get("grid", [2, 2])
-            win_w = width // cols
-            win_h = height // rows
-
-            for tile in config.get("tiles", []):
-                row, col = tile["row"], tile["col"]
-                url = tile["url"]
-                title = f"tile_{row}_{col}"
-                x = col * win_w
-                y = row * win_h
-
-                if not is_stream_alive(url):
-                    restart_stream(title, url, x, y, win_w, win_h)
-
-        except Exception as e:
-            with open("viewport.log", "a") as log:
-                log.write(f"[ERROR] {e}\n")
-
+        for tile in tiles:
+            title = f"tile_{tile['row']}_{tile['col']}"
+            if not is_process_running(title):
+                restart_stream(tile, restart_attempts)
+            else:
+                restart_attempts[title] = 0  # Reset counter if running
         time.sleep(CHECK_INTERVAL)
 
 if __name__ == "__main__":
