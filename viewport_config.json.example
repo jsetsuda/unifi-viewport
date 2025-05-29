@@ -1,0 +1,33 @@
+example
+{
+  "grid": [
+    2,
+    2
+  ],
+  "tiles": [
+    {
+      "row": 0,
+      "col": 0,
+      "name": "Cam1",
+      "url": "https://github.com/jsetsuda/unifi-viewport"
+    },
+    {
+      "row": 0,
+      "col": 1,
+      "name": "Cam2",
+      "url": "https://github.com/jsetsuda/unifi-viewport"
+    },
+    {
+      "row": 1,
+      "col": 0,
+      "name": "Cam3",
+      "url": "https://github.com/jsetsuda/unifi-viewport"
+    },
+    {
+     "row": 1,
+      "col": 1,
+      "name": "Cam4",
+      "url": "rtsps://x.x.x.x/xxxx"
+    }
+  ]
+}
