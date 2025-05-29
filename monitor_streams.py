@@ -73,7 +73,6 @@ def launch_stream(row, col, name, url):
         "--fps=24",
         "--force-seekable=yes",
         "--vo=gpu",
-        "--no-hwdec",
         f"--title={title}",
         "--no-audio",
         url
