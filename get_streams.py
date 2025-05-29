@@ -2,70 +2,109 @@
 import os
 import json
 import requests
-import urllib3
 from dotenv import load_dotenv
+import subprocess
 
-# Suppress warnings for unverified HTTPS requests (local NVRs)
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-# Load environment variables
+# Load credentials from .env
 load_dotenv()
 
-HOST = os.getenv("UFP_HOST")
-USERNAME = os.getenv("UFP_USERNAME")
-PASSWORD = os.getenv("UFP_PASSWORD")
+UFP_HOST = os.getenv("UFP_HOST")
+UFP_USERNAME = os.getenv("UFP_USERNAME")
+UFP_PASSWORD = os.getenv("UFP_PASSWORD")
 
-if not all([HOST, USERNAME, PASSWORD]):
-    raise Exception("UFP_HOST, UFP_USERNAME, and UFP_PASSWORD must be set in .env")
+OUTPUT_FILE = "camera_urls.json"
 
-session = requests.Session()
-session.verify = False  # Don't verify SSL for local IPs with self-signed certs
+def authenticate():
+    url = f"{UFP_HOST}/api/auth/login"
+    data = {"username": UFP_USERNAME, "password": UFP_PASSWORD}
+    try:
+        response = requests.post(url, json=data, verify=False, timeout=10)
+        response.raise_for_status()
+        return response.cookies
+    except requests.RequestException as e:
+        print(f"[ERROR] Authentication failed: {e}")
+        exit(1)
 
-print("[INFO] Authenticating with UniFi Protect...")
+def get_cameras(cookies):
+    url = f"{UFP_HOST}/proxy/protect/api/cameras"
+    try:
+        response = requests.get(url, cookies=cookies, verify=False, timeout=10)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        print(f"[ERROR] Failed to fetch camera list: {e}")
+        exit(1)
 
-# Authenticate and get session cookie
-auth_resp = session.post(
-    f"{HOST}/api/auth/login",
-    json={"username": USERNAME, "password": PASSWORD}
-)
+def get_metadata(rtsp_url):
+    try:
+        result = subprocess.run([
+            "ffprobe",
+            "-v", "error",
+            "-select_streams", "v:0",
+            "-show_entries", "stream=avg_frame_rate,width,height,codec_name,pix_fmt,bit_rate,profile",
+            "-of", "json",
+            rtsp_url
+        ], capture_output=True, text=True, timeout=20)
 
-if auth_resp.status_code != 200:
-    raise Exception(f"[ERROR] Login failed: {auth_resp.status_code} {auth_resp.text}")
+        parsed = json.loads(result.stdout)
+        stream = parsed.get("streams", [{}])[0]
+        return {
+            "width": stream.get("width"),
+            "height": stream.get("height"),
+            "codec_name": stream.get("codec_name"),
+            "pix_fmt": stream.get("pix_fmt"),
+            "avg_frame_rate": stream.get("avg_frame_rate"),
+            "profile": stream.get("profile")
+        }
+    except Exception as e:
+        print(f"[WARN] Failed to probe {rtsp_url}: {e}")
+        return {}
 
-# Get auth token
-token = auth_resp.cookies.get("TOKEN")
-if not token:
-    raise Exception("[ERROR] Failed to retrieve auth token.")
+def extract_rtsp_streams(cameras):
+    camera_data = []
 
-session.cookies.set("TOKEN", token)
+    for cam in cameras:
+        name = cam.get("name", "Unknown")
+        channels = cam.get("channels", [])
+        stream_url = None
 
-# Fetch camera list
-print("[INFO] Fetching camera list...")
-cam_resp = session.get(f"{HOST}/proxy/protect/api/cameras")
+        for ch in channels:
+            if ch.get("isRtspEnabled") and ch.get("name") == "High":
+                stream_url = ch.get("rtspAlias")
+                break
 
-if cam_resp.status_code != 200:
-    raise Exception(f"[ERROR] Failed to fetch cameras: {cam_resp.status_code} {cam_resp.text}")
+        if not stream_url and channels:
+            for ch in channels:
+                if ch.get("isRtspEnabled"):
+                    stream_url = ch.get("rtspAlias")
+                    break
 
-cameras = cam_resp.json()
-output = []
+        if stream_url:
+            url = f"rtsp://{UFP_HOST.replace('https://', '').replace('http://', '')}:7447/{stream_url}"
+            metadata = get_metadata(url)
 
-for cam in cameras:
-    name = cam.get("name", "Unnamed Camera")
-    channels = cam.get("channels", [])
-
-    for ch in channels:
-        if ch.get("isRtspEnabled") and ch.get("rtspAlias"):
-            width = ch.get("width", "?")
-            height = ch.get("height", "?")
-            resolution = f"{width}x{height}"
-            rtsp_url = f"rtsp://{HOST.replace('https://', '').replace('http://', '')}:7447/{ch['rtspAlias']}"
-            output.append({
-                "name": f"{name} ({resolution})",
-                "url": rtsp_url
+            camera_data.append({
+                "name": name,
+                "url": url,
+                "metadata": metadata
             })
 
-# Save results
-with open("camera_urls.json", "w") as f:
-    json.dump(output, f, indent=2)
+    return camera_data
 
-print(f"[SUCCESS] Saved {len(output)} camera streams to camera_urls.json")
+def main():
+    print("[INFO] Authenticating with UniFi Protect...")
+    cookies = authenticate()
+
+    print("[INFO] Fetching camera list...")
+    cameras = get_cameras(cookies)
+
+    print("[INFO] Extracting RTSP URLs and probing metadata...")
+    camera_data = extract_rtsp_streams(cameras)
+
+    with open(OUTPUT_FILE, "w") as f:
+        json.dump(camera_data, f, indent=2)
+
+    print(f"[SUCCESS] Saved {len(camera_data)} camera streams with metadata to {OUTPUT_FILE}")
+
+if __name__ == "__main__":
+    main()
