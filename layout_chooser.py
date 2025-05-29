@@ -25,7 +25,6 @@ def fetch_camera_list():
     except subprocess.CalledProcessError as e:
         print(f"[WARN] get_streams.py failed:\n{e.output}")
         # Silently fallback to cached camera list
-        # messagebox.showwarning("Camera Fetch Error", "Could not update camera list. Using cached data.")
 
 
 # Fetch camera list
@@ -41,7 +40,9 @@ try:
         cameras = json.load(f)
     if not isinstance(cameras, list) or not cameras:
         raise ValueError("Camera list is empty.")
-    camera_names = [cam["name"] for cam in cameras]
+    # Sort and prefer 1920x1080 or 1280x720 for auto-fill
+    camera_names = sorted([cam["name"] for cam in cameras])
+    preferred = [name for name in camera_names if "(1920x1080)" in name or "(1280x720)" in name]
     camera_map = {cam["name"]: cam["url"] for cam in cameras if cam.get("url")}
 except Exception as e:
     messagebox.showwarning("Camera Load Warning", f"Unable to load cameras:\n{e}")
@@ -105,7 +106,8 @@ class LayoutEditor(tk.Tk):
         frame = tk.Frame(self)
         frame.pack(padx=10, pady=10)
 
-        flat = camera_names[:size * size]
+        # Prefer higher-resolution streams for auto-fill
+        flat = preferred[:size * size] or camera_names[:size * size]
         for r in range(size):
             for c in range(size):
                 var = self.assignments[r][c]
@@ -116,7 +118,7 @@ class LayoutEditor(tk.Tk):
                 cell = tk.Frame(frame)
                 cell.grid(row=r, column=c, padx=5, pady=5)
 
-                cb = ttk.Combobox(cell, values=camera_names, textvariable=var, width=20)
+                cb = ttk.Combobox(cell, values=camera_names, textvariable=var, width=30)
                 cb.pack(side=tk.LEFT)
 
                 def on_select(event, var=var, cb=cb):
