@@ -14,6 +14,7 @@ sudo apt install -y \
   python3 \
   python3-pip \
   python3-tk \
+  python3-psutil \
   ffmpeg \
   mpv \
   jq \
@@ -23,13 +24,12 @@ sudo apt install -y \
   libegl1 \
   x11-utils \
   xdotool \
-  git
-
+  git 
+  
 echo "[INFO] Installing Python packages globally (with --break-system-packages)..."
 pip3 install --break-system-packages \
   python-dotenv \
   requests \
-  psutil \
   uiprotect
 
 # === Prompt user for .env values ===
