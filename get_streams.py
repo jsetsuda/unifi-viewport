@@ -1,132 +1,85 @@
 #!/usr/bin/env python3
-import os
-import json
 import requests
-import subprocess
+import json
+import os
 from dotenv import load_dotenv
-import math
 
-UFP_API = "/proxy/protect/api/cameras"
-CAMERA_JSON = "camera_urls.json"
-CONFIG_JSON = "viewport_config.json"
+load_dotenv()
 
-def ffprobe_info(rtsp_url):
-    try:
-        result = subprocess.run([
-            "ffprobe", "-v", "error",
-            "-select_streams", "v:0",
-            "-show_entries", "stream=avg_frame_rate,width,height,codec_name,pix_fmt,bit_rate,profile",
-            "-of", "json",
-            rtsp_url
-        ], capture_output=True, text=True, timeout=10)
+UFP_HOST = os.getenv("UFP_HOST")
+UFP_USERNAME = os.getenv("UFP_USERNAME")
+UFP_PASSWORD = os.getenv("UFP_PASSWORD")
 
-        data = json.loads(result.stdout)
-        stream = data["streams"][0] if data["streams"] else {}
+if not all([UFP_HOST, UFP_USERNAME, UFP_PASSWORD]):
+    raise ValueError("Missing one or more .env values: UFP_HOST, UFP_USERNAME, UFP_PASSWORD")
 
-        fps_raw = stream.get("avg_frame_rate", "0/1")
-        try:
-            num, denom = map(int, fps_raw.split("/"))
-            fps = round(num / denom, 2) if denom else 0
-        except:
-            fps = 0
+LOGIN_URL = f"{UFP_HOST}/api/auth/login"
+CAMERA_URL = f"{UFP_HOST}/proxy/protect/api/cameras"
+COOKIE_FILE = "cookies.txt"
+HEADERS = {"Content-Type": "application/json"}
 
-        return {
-            "width": stream.get("width"),
-            "height": stream.get("height"),
-            "codec": stream.get("codec_name"),
-            "profile": stream.get("profile"),
-            "pix_fmt": stream.get("pix_fmt"),
-            "bit_rate": stream.get("bit_rate"),
-            "fps": fps
-        }
+def login(session):
+    print("[INFO] Logging in...")
+    response = session.post(LOGIN_URL, json={
+        "username": UFP_USERNAME,
+        "password": UFP_PASSWORD
+    }, headers=HEADERS, verify=False)
 
-    except Exception as e:
-        print(f"[WARN] Failed to probe {rtsp_url}: {e}")
-        return {}
+    if response.status_code != 200:
+        raise Exception(f"Login failed: {response.status_code} - {response.text}")
+    print("[INFO] Logged in successfully.")
 
-def get_rtsp_streams():
-    load_dotenv()
+def get_cameras(session):
+    print("[INFO] Fetching camera list...")
+    response = session.get(CAMERA_URL, headers=HEADERS, verify=False)
+    if response.status_code != 200:
+        raise Exception(f"Failed to fetch cameras: {response.status_code} - {response.text}")
+    return response.json()
 
-    host = os.getenv("UFP_HOST")
-    username = os.getenv("UFP_USERNAME")
-    password = os.getenv("UFP_PASSWORD")
+def parse_cameras(data):
+    stream_list = []
 
-    if not all([host, username, password]):
-        print("[ERROR] Missing .env variables: UFP_HOST, UFP_USERNAME, or UFP_PASSWORD")
-        return []
-
-    session = requests.Session()
-    session.verify = False
-
-    try:
-        r = session.post(f"{host}/api/auth/login", json={"username": username, "password": password})
-        r.raise_for_status()
-    except Exception as e:
-        print(f"[ERROR] Failed to authenticate: {e}")
-        return []
-
-    try:
-        r = session.get(f"{host}{UFP_API}")
-        r.raise_for_status()
-        cameras = r.json()
-    except Exception as e:
-        print(f"[ERROR] Failed to get camera list: {e}")
-        return []
-
-    streams = []
-    tiles = []
-
-    for index, cam in enumerate(cameras):
-        if not cam.get("isConnected"):
-            continue
-
-        name = cam.get("name", "Unnamed Camera")
+    for cam in data:
+        name = cam.get("name", "Unnamed")
+        state = cam.get("state", "")
         channels = cam.get("channels", [])
-        high_quality = next((ch for ch in channels if ch.get("name") == "High" and ch.get("rtspEnabled")), None)
 
-        if not high_quality:
+        if state != "CONNECTED":
+            print(f"[INFO] Skipping disconnected camera: {name}")
             continue
 
-        url = high_quality.get("rtspUrl")
-        meta = ffprobe_info(url)
+        print(f"[INFO] Processing camera: {name}")
+        for channel in channels:
+            rtsp = channel.get("rtspAlias")
+            resolution = f"{channel.get('width')}x{channel.get('height')}"
+            fps = channel.get("fps")
 
-        entry = {
-            "name": name,
-            "url": url,
-            **meta
-        }
-        streams.append(entry)
+            if rtsp:
+                stream_list.append({
+                    "name": f"{name} ({resolution} @ {fps}fps)",
+                    "url": f"rtsps://{UFP_HOST.split('//')[-1]}:7441/{rtsp}"
+                })
 
-    if not streams:
-        print("[WARN] No streams detected.")
-        return
+    return stream_list
 
-    # Auto-calculate grid size (square-ish)
-    count = len(streams)
-    rows = int(math.sqrt(count))
-    cols = math.ceil(count / rows)
-
-    for idx, stream in enumerate(streams):
-        row = idx // cols
-        col = idx % cols
-        resolution = f"({stream['width']}x{stream['height']})" if stream.get("width") and stream.get("height") else ""
-        tiles.append({
-            "row": row,
-            "col": col,
-            "name": f"{stream['name']} {resolution}".strip(),
-            "url": stream["url"]
-        })
-
-    with open(CAMERA_JSON, "w") as f:
+def save_output(streams):
+    with open("camera_urls.json", "w") as f:
         json.dump(streams, f, indent=2)
+    print(f"[SUCCESS] Saved {len(streams)} camera streams to camera_urls.json")
 
-    with open(CONFIG_JSON, "w") as f:
-        json.dump({
-            "grid": [rows, cols],
-            "tiles": tiles
-        }, f, indent=2)
-
-    print(f"[SUCCESS] Saved {len(streams)} camera streams to {CAMERA_JSON} and layout to {CONFIG_JSON}")
+    layout = {
+        "layout": "2x2" if len(streams) <= 4 else "3x3" if len(streams) <= 9 else "4x4"
+    }
+    with open("viewport_config.json", "w") as f:
+        json.dump(layout, f, indent=2)
+    print(f"[SUCCESS] Saved layout ({layout['layout']}) to viewport_config.json")
 
 if __name__ == "__main__":
-    get_rtsp_streams()
+    session = requests.Session()
+    try:
+        login(session)
+        data = get_cameras(session)
+        streams = parse_cameras(data)
+        save_output(streams)
+    except Exception as e:
+        print(f"[ERROR] {e}")
