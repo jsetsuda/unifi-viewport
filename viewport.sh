@@ -74,7 +74,7 @@ $JQ -c '.tiles[]' "$CONFIG_FILE" | while read -r tile; do
        --loop=inf --no-resume-playback \
        --no-cache --demuxer-readahead-secs=1 \
        --fps=24 --force-seekable=yes \
-       --vo=gpu --hwdec=auto \
+       --vo=gpu \
        --title="$TITLE" --no-audio "$URL" >> "$LOG_FILE" 2>&1 &
 done
 
