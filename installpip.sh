@@ -15,6 +15,12 @@ for cmd in "${REQUIRED_CMDS[@]}"; do
     fi
 done
 
+# === Ensure required system package for psutil ===
+if ! dpkg -s python3-psutil &>/dev/null; then
+    echo "[INFO] Installing python3-psutil system package..."
+    sudo apt install -y python3-psutil
+fi
+
 # === Create virtual environment ===
 if [ ! -d venv ]; then
     echo "[INFO] Creating Python virtual environment..."
