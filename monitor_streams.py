@@ -59,9 +59,8 @@ def launch_stream(row, col, name, url):
     url = re.sub(r"rtsps://([^:/]+):7441", r"rtsp://\1:7447", url)
 
     log(f"Restarting stream: {name} ({url}) at {x},{y} as {title}")
-
     cmd = [
-        MPV_BIN,
+    MPV_BIN,
         "--no-border",
         f"--geometry={win_w}x{win_h}+{x}+{y}",
         "--profile=low-latency",
@@ -71,9 +70,10 @@ def launch_stream(row, col, name, url):
         "--no-resume-playback",
         "--no-cache",
         "--demuxer-readahead-secs=1",
-        "--fps=15",
+        "--fps=24",
         "--force-seekable=yes",
-        "--vo=sdl",
+        "--vo=gpu",
+        "--no-hwdec",
         f"--title={title}",
         "--no-audio",
         url
