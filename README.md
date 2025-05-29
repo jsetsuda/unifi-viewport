@@ -42,72 +42,79 @@ cd unifi-viewport
 
 ## 📦 Installation Options
 
-### 🅰️ Step 1 - Option 1: System-Wide Install (Recommended for Raspberry Pi)
-
-```bash
-chmod +x install.sh
-./install.sh
-```
-
-This installs required system packages and Python dependencies globally. It will:
-
-* Prompt for UniFi Protect credentials and create a `.env` file
-* Add `.env` to `.gitignore`
-* Install tools like `mpv`, `jq`, `ffmpeg`, `python3-tk`
-* Run without needing virtualenvs
-
-**Best for:** users who want simplicity and are running on Raspberry Pi OS.
+Choose one of the following installation paths based on your Raspberry Pi OS type and desired complexity.
 
 ---
 
-### 🅱️ Step 1 - Option 2: Isolated Virtualenv Install (Recommended for Developers)
+### 🅰️ Option 1: Full Setup on Raspberry Pi OS Lite (Headless or Minimal GUI)
 
-```bash
-chmod +x pipinstall.sh
-./pipinstall.sh
-source venv/bin/activate
-```
-
-This method avoids installing Python packages globally by using a virtual environment. It will:
-
-* Create `venv/` for isolated dependencies
-* Prompt for `.env` credentials
-* Use `requirements.txt` to install Python packages
-
-**Best for:** developers, CI environments, or when avoiding global Python changes.
-
----
-
-### 🅾️ Step 2: GUI Autostart Setup (Optional if full desktop or GUI already installed and active)
+This installs everything needed for a lightweight GUI-based RTSP viewport on a clean Raspberry Pi OS Lite system.
 
 ```bash
 chmod +x installgui.sh
 ./installgui.sh
 ```
 
-This enables auto-login into the GUI and launches the layout chooser automatically.
+This script will:
+- Install a minimal GUI (Openbox + LightDM)
+- Create a `viewport` user with autologin
+- Set up the UniFi Viewport environment and dependencies
+- Prompt for UniFi Protect credentials to create `.env`
+- Configure automatic launch of the layout selector
 
-Then run:
+💡 After setup, reboot the Pi and it will boot directly into the RTSP viewer GUI.
 
-```bash
-sudo raspi-config
-# System Options → Boot / Auto Login → Desktop Autologin
-```
-
-**Best for:** users setting up a dedicated screen or unattended viewer station.
+**Best for:** Clean Raspberry Pi Lite OS (64-bit) installs with no desktop environment.
 
 ---
 
-## 🚀 First Run
+### 🅱️ Option 2: Install on Desktop or GUI System (System-Wide)
 
-Once installed, launch the layout selector to configure your grid:
+If you already have a full Raspberry Pi OS with Desktop or another Linux GUI installed, use this method:
 
 ```bash
-./get_streams.py
+chmod +x install.sh
+./install.sh
+```
+
+This script will:
+- Install all system-wide packages (e.g. mpv, jq, python3-tk)
+- Install Python dependencies globally using pip
+- Prompt for UniFi Protect credentials to create `.env`
+- Prepare scripts for launch
+
+**Best for:** Users with Raspberry Pi OS (with Desktop) or a GUI-capable Linux system already configured.
+
+---
+
+### 🅾️ Option 3: Developer Mode with Virtualenv
+
+Install using a virtual environment for isolated testing or CI workflows.
+
+```bash
+chmod +x installpip.sh
+./installpip.sh
+source venv/bin/activate
+```
+
+This method:
+- Creates a `venv/` virtual environment
+- Installs Python requirements from `requirements.txt`
+- Prompts for UniFi Protect `.env` credentials
+- Avoids modifying system Python or using `sudo pip`
+
+**Best for:** Developers, advanced users, testing environments.
+
+
+## 🚀 First Run
+
+Once installed, if autolaunch does not occur, launch the layout selector to pull your camera streams and configure your grid:
+
+```bash
 ./layout_chooser.py
 ```
 
-After 10 seconds of inactivity, it will auto-launch the last saved layout.
+On subsequent boots, after 10 seconds of inactivity, it will auto-launch the last saved layout.
 
 ---
 
