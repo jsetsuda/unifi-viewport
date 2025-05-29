@@ -3,7 +3,6 @@ set -euo pipefail
 
 echo "== UniFi RTSP Viewport (pip/venv) Installer =="
 
-# Ensure script is run from project root
 cd "$(dirname "$0")"
 
 # === Required system commands ===
@@ -41,17 +40,23 @@ echo "[INFO] Installing Python packages into venv..."
 pip install --upgrade pip
 pip install -r requirements.txt
 
-# === Create .env file if missing ===
+# === Prompt user for .env variables ===
 if [ ! -f .env ]; then
-    echo "[INFO] Creating .env template..."
+    echo "[INFO] Let's configure your UniFi Protect connection:"
+    read -rp "Enter UFP_HOST (e.g. https://192.168.5.10): " UFP_HOST
+    read -rp "Enter UFP_USERNAME: " UFP_USERNAME
+    read -rsp "Enter UFP_PASSWORD: " UFP_PASSWORD
+    echo
+
     cat <<EOF > .env
-UFP_HOST=https://192.168.5.10
-UFP_USERNAME=your_username
-UFP_PASSWORD=your_password
+UFP_HOST=$UFP_HOST
+UFP_USERNAME=$UFP_USERNAME
+UFP_PASSWORD=$UFP_PASSWORD
 EOF
-    echo "[INFO] .env file created. Please edit it with your UniFi Protect login info."
+
+    echo "[INFO] .env file created with your credentials."
 else
-    echo "[INFO] .env file already exists, skipping creation."
+    echo "[INFO] .env file already exists, skipping prompt."
 fi
 
 # === Add .env to .gitignore if needed ===
@@ -64,7 +69,7 @@ if ! grep -q "^.env$" .gitignore; then
     echo "[INFO] .env added to .gitignore"
 fi
 
-# === Mark key scripts executable ===
+# === Make scripts executable ===
 chmod +x get_streams.py layout_chooser.py viewport.sh
 
 echo "[✅ SUCCESS] Setup complete using virtualenv."
