@@ -10,10 +10,9 @@ PYTHON="/usr/bin/python3"
 # Start fresh log
 echo "[INFO] Starting viewport.sh at $(date)" > "$LOG_FILE"
 
-# Ensure DISPLAY is set
+# Ensure DISPLAY is set (assume :0)
 if [ -z "$DISPLAY" ]; then
-  echo "[ERROR] DISPLAY not set. Are you running inside a GUI session?" >> "$LOG_FILE"
-  exit 1
+  export DISPLAY=:0
 fi
 
 # Check required tools
@@ -30,9 +29,16 @@ if [ ! -f "$CONFIG_FILE" ] || ! $JQ empty "$CONFIG_FILE" >/dev/null 2>&1; then
   exit 1
 fi
 
-# Detect screen dimensions
-WIDTH=$(xdpyinfo | awk '/dimensions:/ {print $2}' | cut -d'x' -f1)
-HEIGHT=$(xdpyinfo | awk '/dimensions:/ {print $2}' | cut -d'x' -f2)
+# Attempt to read screen dimensions from X
+WIDTH=$(xdpyinfo 2>/dev/null | awk '/dimensions:/ {print $2}' | cut -d'x' -f1)
+HEIGHT=$(xdpyinfo 2>/dev/null | awk '/dimensions:/ {print $2}' | cut -d'x' -f2)
+
+# Fallback if xdpyinfo fails
+if [ -z "$WIDTH" ] || [ -z "$HEIGHT" ]; then
+  WIDTH=3840
+  HEIGHT=2160
+  echo "[WARN] Falling back to default resolution: ${WIDTH}x${HEIGHT}" >> "$LOG_FILE"
+fi
 
 ROWS=$($JQ '.grid[0]' "$CONFIG_FILE")
 COLS=$($JQ '.grid[1]' "$CONFIG_FILE")
