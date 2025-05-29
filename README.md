@@ -100,9 +100,10 @@ sudo raspi-config
 
 ## 🚀 First Run
 
-Once installed, launch the layout selector to configure your grid (must be done on pi, not SSH):
+Once installed, launch the layout selector to configure your grid:
 
 ```bash
+./get_streams.py
 ./layout_chooser.py
 ```
 
