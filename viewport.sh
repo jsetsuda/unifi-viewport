@@ -16,7 +16,7 @@ if [ -z "$DISPLAY" ]; then
   exit 1
 fi
 
-# Check for required tools
+# Check required tools
 for TOOL in "$JQ" "$MPV" "$PYTHON"; do
   if [ ! -x "$TOOL" ]; then
     echo "[ERROR] Required tool not found: $TOOL" >> "$LOG_FILE"
@@ -48,7 +48,7 @@ WIN_H=$((HEIGHT / ROWS))
 # Kill existing MPV instances
 pkill -9 mpv >> "$LOG_FILE" 2>&1
 
-# Launch streams
+# Launch each stream
 $JQ -c '.tiles[]' "$CONFIG_FILE" | while read -r tile; do
   ROW=$(echo "$tile" | $JQ '.row')
   COL=$(echo "$tile" | $JQ '.col')
@@ -60,8 +60,8 @@ $JQ -c '.tiles[]' "$CONFIG_FILE" | while read -r tile; do
     continue
   fi
 
-  # Fix RTSPS compatibility on Pi
-  URL=${URL//rtsps:/rtsp:}
+  # Convert rtsps://IP:7441 to rtsp://IP:7447
+  URL=$(echo "$URL" | sed -E 's|rtsps://([^:/]+):7441|rtsp://\1:7447|')
 
   X=$((COL * WIN_W))
   Y=$((ROW * WIN_H))
