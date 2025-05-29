@@ -66,19 +66,17 @@ def restart_stream(tile, restart_attempts, screen_width, screen_height, rows, co
         url = tile['url'].replace("rtsps://", "rtsp://")
 
         cmd = [
-            "mpv",
-            "--no-border",
-            f"--geometry={width}x{height}+{x}+{y}",
-            "--profile=low-latency",
-            "--rtsp-transport=tcp",
-            "--loop=inf",
-            "--no-resume-playback",
-            "--no-cache",
-            "--demuxer-readahead-secs=1",
-            "--force-seekable=yes",
-            "--video-sync=display-resample",
-            f"--title={title}",
-            "--no-audio"
+           "mpv",
+           "--no-border",
+           f"--geometry={width}x{height}+{x}+{y}",
+           "--profile=low-latency",
+           "--rtsp-transport=tcp",
+           "--loop=inf",
+           "--no-resume-playback",
+           f"--title={title}",
+           "--no-audio",
+           "--vo=sdl",
+           "--video-sync=display-resample"
         ]
 
         fps = extract_fps_from_name(tile['name'])
