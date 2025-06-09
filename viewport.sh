@@ -2,10 +2,8 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-# ── Configuration ─────────────────────────────────────────────────────────────
 CONFIG="viewport_config.json"
 LOG="viewport.log"
-FLAG="layout_updated.flag"
 CHOOSER="layout_chooser.py"
 MONITOR="monitor_streams.py"
 
@@ -21,78 +19,77 @@ export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 exec > >(tee -a "$LOG") 2>&1
 echo "[INFO] Starting viewport.sh at $(date)"
 
-# ── Kill any leftover mpv streams ─────────────────────────────────────────────
-echo "[INFO] Killing existing mpv streams..."
+# ── Kill leftover MPV windows ────────────────────────────────────────────────
+echo "[INFO] Killing existing mpv streams…"
 pkill -f "$MPV --no-border" || true
 sleep 1
 
-# ── Verify required tools ─────────────────────────────────────────────────────
-for TOOL in "$JQ" "$MPV" "$PYTHON" "$XDOTOOL"; do
-  [[ -x $TOOL ]] || { echo "[ERROR] Missing tool: $TOOL"; exit 1; }
+# ── Check dependencies ───────────────────────────────────────────────────────
+for tool in jq mpv python3 xdotool; do
+  command -v $tool >/dev/null || { echo "[ERROR] $tool missing"; exit 1; }
 done
 
-# ── Always launch the chooser (blocks here until you Save or timeout) ───────
-rm -f "$FLAG" 2>/dev/null || true
+# ── Always launch chooser in the foreground ─────────────────────────────────
 echo "[INFO] Launching layout chooser…"
 "$PYTHON" "$CHOOSER"
 
-# ── Validate that chooser wrote a full grid+tiles config ────────────────────
+# ── Validate that the chooser wrote a proper grid+tiles JSON ────────────────
 if ! $JQ -e '.grid and .tiles and (.tiles|length>0)' "$CONFIG" &>/dev/null; then
-  echo "[ERROR] viewport_config.json invalid or missing—aborting"
+  echo "[ERROR] Invalid or missing $CONFIG; aborting"
   exit 1
 fi
 
-# ── Detect display resolution ────────────────────────────────────────────────
-if IFS=' ' read -r WIDTH HEIGHT <<< "$($XDOTOOL getdisplaygeometry)"; then
-  echo "[INFO] Detected display geometry: ${WIDTH}×${HEIGHT}"
+# ── Get display size ────────────────────────────────────────────────────────
+if IFS=' ' read -r W H <<< "$($XDOTOOL getdisplaygeometry)"; then
+  echo "[INFO] Detected display geometry: ${W}×${H}"
 else
-  WIDTH=3840; HEIGHT=2160
-  echo "[WARN] Could not detect geometry—using fallback ${WIDTH}×${HEIGHT}"
+  W=3840; H=2160
+  echo "[WARN] Using fallback ${W}×${H}"
 fi
 
-# ── Compute per-tile dimensions ──────────────────────────────────────────────
+# ── Compute per-tile size ───────────────────────────────────────────────────
 ROWS=$($JQ -r '.grid[0] // 1' "$CONFIG")
 COLS=$($JQ -r '.grid[1] // 1' "$CONFIG")
 (( ROWS<1 )) && ROWS=1
 (( COLS<1 )) && COLS=1
-WIN_W=$(( WIDTH  / COLS ))
-WIN_H=$(( HEIGHT / ROWS ))
-echo "[DEBUG] Grid: ${ROWS}×${COLS}, tile size: ${WIN_W}×${WIN_H}"
+TW=$(( W  / COLS ))
+TH=$(( H  / ROWS ))
+echo "[DEBUG] Grid: ${ROWS}×${COLS}, tile size: ${TW}×${TH}"
 
-# ── Hardware decode hint for Pi 5 ────────────────────────────────────────────
+# ── Hardware decode hint for Pi 5 ──────────────────────────────────────────
 HWDEC=""
 grep -qi "raspberry pi 5" /proc/device-tree/model &>/dev/null && HWDEC="--hwdec=auto"
 
-# ── Launch each tile in background ──────────────────────────────────────────
+# ── Launch each tile ────────────────────────────────────────────────────────
 $JQ -c '.tiles[]' "$CONFIG" | while read -r tile; do
   read R C w h name url <<<"$(
     echo "$tile" | $JQ -r '[.row,.col,.w,.h,.name,.url]|@tsv'
   )"
   [[ $url && $url != "null" ]] || continue
 
-  # convert RTSPS port
+  # convert secure→plain RTSP
   url=$(sed -E 's|rtsps://([^:/]+):7441|rtsp://\1:7447|' <<<"$url")
 
-  X=$(( C * WIN_W )) Y=$(( R * WIN_H ))
-  TW=$(( w * WIN_W ))  TH=$(( h * WIN_H ))
+  X=$(( C * TW )) Y=$(( R * TH ))
+  WW=$(( w * TW ))  HH=$(( h * TH ))
 
-  echo "[INFO] Launching \"$name\" @ ${TW}×${TH}+${X}+${Y}"
+  echo "[INFO] Launching \"$name\" @ ${WW}×${HH}+${X}+${Y}"
   "$MPV" \
-    --no-border --geometry=${TW}x${TH}+${X}+${Y} \
+    --no-border --geometry=${WW}x${HH}+${X}+${Y} \
     --profile=low-latency --untimed --no-correct-pts \
     --video-sync=desync --framedrop=vo --rtsp-transport=tcp \
     --loop=inf --no-resume-playback --no-cache \
     --demuxer-readahead-secs=1 --fps=24 --force-seekable=yes \
-    --vo=gpu $HWDEC --title="tile_${R}_${C}" \
-    --no-audio --keep-open=yes "$url" &
+    --vo=gpu $HWDEC --title="tile_${R}_${C}" --no-audio --keep-open=yes \
+    "$url" &
 done
 
-# ── Start health monitor if present ──────────────────────────────────────────
+# ── Start health monitor if available ───────────────────────────────────────
 if [[ -x $MONITOR ]]; then
   echo "[INFO] Starting health monitor"
   "$PYTHON" "$MONITOR" &
 else
-  echo "[WARN] monitor_streams.py missing—skipping health monitor"
+  echo "[WARN] $MONITOR missing – skipping health monitor"
 fi
 
 wait
