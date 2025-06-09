@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 echo "== UniFi Viewport All-in-One Setup for Raspberry Pi OS Lite =="
@@ -6,7 +6,7 @@ echo "== UniFi Viewport All-in-One Setup for Raspberry Pi OS Lite =="
 # Ensure we're in the project root
 cd "$(dirname "$0")"
 
-# === Install system dependencies ===
+# --- Install system dependencies ---
 echo "[INFO] Installing GUI, display, and runtime dependencies..."
 sudo apt update
 sudo apt install -y \
@@ -34,29 +34,32 @@ sudo apt install -y \
   libegl1 \
   git
 
-# === Prompt for .env setup ===
-if [ ! -f ".env" ]; then
-  echo "[INFO] Creating .env file..."
-  read -p "Enter UniFi Protect Host (e.g. https://192.168.1.1): " host
-  read -p "Enter UniFi Protect Username: " username
-  read -s -p "Enter UniFi Protect Password: " password
+# --- Prompt for .env setup if needed ---
+if [ ! -f .env ]; then
   echo
-  cat <<EOF > .env
+  echo "[INFO] Creating .env file for UniFi Protect credentials..."
+  read -rp "  UFP_HOST     (e.g. https://192.168.5.10): " host
+  read -rp "  UFP_USERNAME : " username
+  read -rsp "  UFP_PASSWORD : " password
+  echo
+  cat > .env <<EOF
 UFP_HOST=$host
 UFP_USERNAME=$username
 UFP_PASSWORD=$password
 EOF
   echo "[INFO] .env file created."
+else
+  echo "[INFO] .env already exists — skipping."
 fi
 
-# === Install Python packages ===
-echo "[INFO] Installing Python packages..."
+# --- Install Python packages ---
+echo "[INFO] Installing Python libraries..."
 pip3 install --break-system-packages \
   python-dotenv \
   requests \
-  uiprotect
+  psutil
 
-# === Create 'viewport' user for GUI login ===
+# --- Ensure viewport user exists ---
 if ! id "viewport" &>/dev/null; then
   echo "[INFO] Creating 'viewport' user..."
   sudo useradd -m -s /bin/bash viewport
@@ -64,10 +67,10 @@ if ! id "viewport" &>/dev/null; then
   sudo usermod -aG sudo viewport
 fi
 
-# === Configure LightDM for autologin ===
+# --- Configure LightDM for autologin ---
 echo "[INFO] Configuring LightDM for autologin..."
 sudo mkdir -p /etc/lightdm/lightdm.conf.d
-cat <<EOF | sudo tee /etc/lightdm/lightdm.conf.d/50-viewport.conf
+cat <<EOF | sudo tee /etc/lightdm/lightdm.conf.d/50-viewport.conf >/dev/null
 [Seat:*]
 autologin-user=viewport
 autologin-user-timeout=0
@@ -75,15 +78,20 @@ autologin-session=openbox
 user-session=openbox
 EOF
 
-# === Create Openbox autostart script ===
-echo "[INFO] Creating Openbox autostart script..."
+# --- Create Openbox autostart script ---
+echo "[INFO] Creating Openbox autostart for layout chooser..."
 sudo -u viewport mkdir -p /home/viewport/.config/openbox
-cat <<'EOF' | sudo tee /home/viewport/.config/openbox/autostart > /dev/null
-#!/bin/bash
+cat <<'EOF' | sudo tee /home/viewport/.config/openbox/autostart >/dev/null
+#!/usr/bin/env bash
+# disable screen blanking
 xset s off
 xset -dpms
 xset s noblank
+
+# hide mouse when idle
 unclutter &
+
+# launch layout chooser on login
 cd /home/viewport/unifi-viewport
 ./layout_chooser.py &
 EOF
@@ -91,5 +99,15 @@ EOF
 sudo chmod +x /home/viewport/.config/openbox/autostart
 sudo chown -R viewport:viewport /home/viewport/.config/openbox
 
-echo "[✅ COMPLETE] All-in-one installation done!"
-echo "➡️  Reboot now. The system will auto-login as 'viewport' and launch the layout chooser."
+# --- Mark all scripts executable ---
+echo "[INFO] Marking entry-point scripts executable..."
+chmod +x get_streams.py \
+         layout_chooser.py \
+         viewport.sh \
+         monitor_streams.py \
+         kill_stale_streams.py \
+         overlay_box.py
+
+echo
+echo "[✅ COMPLETE] All-in-one GUI install finished!"
+echo "➡️  Reboot now: the Pi will auto-login as 'viewport' and launch the layout chooser."
