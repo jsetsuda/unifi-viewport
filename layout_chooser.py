@@ -10,6 +10,44 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CAMERA_FILE = os.path.join(SCRIPT_DIR, "camera_urls.json")
 CONFIG_FILE = os.path.join(SCRIPT_DIR, "viewport_config.json")
 
+CUSTOM_LAYOUTS = {
+    "2x1": {
+        "grid": [1, 2],
+        "tiles": [
+            {"row": 0, "col": 0, "w": 1, "h": 1},
+            {"row": 0, "col": 1, "w": 1, "h": 1}
+        ]
+    },
+    "3_custom": {
+        "grid": [2, 2],
+        "tiles": [
+            {"row": 0, "col": 0, "w": 1, "h": 2},
+            {"row": 0, "col": 1, "w": 1, "h": 1},
+            {"row": 1, "col": 1, "w": 1, "h": 1}
+        ]
+    },
+    "5_custom": {
+        "grid": [2, 3],
+        "tiles": [
+            {"row": 0, "col": 0, "w": 2, "h": 2},
+            {"row": 0, "col": 1, "w": 1, "h": 1},
+            {"row": 1, "col": 1, "w": 1, "h": 1},
+            {"row": 0, "col": 2, "w": 1, "h": 1},
+            {"row": 1, "col": 2, "w": 1, "h": 1}
+        ]
+    },
+    "6_custom": {
+        "grid": [3, 3],
+        "tiles": [
+            {"row": 0, "col": 0, "w": 2, "h": 2},
+            {"row": 0, "col": 2, "w": 1, "h": 1},
+            {"row": 1, "col": 2, "w": 1, "h": 1},
+            {"row": 2, "col": 0, "w": 1, "h": 1},
+            {"row": 2, "col": 1, "w": 1, "h": 1},
+            {"row": 2, "col": 2, "w": 1, "h": 1}
+        ]
+    }
+}
 
 def fetch_camera_list():
     try:
@@ -24,7 +62,6 @@ def fetch_camera_list():
         print(result.stdout)
     except subprocess.CalledProcessError as e:
         print(f"[WARN] get_streams.py failed:\n{e.output}")
-
 
 def inject_metadata_into_config():
     try:
@@ -47,7 +84,6 @@ def inject_metadata_into_config():
     except Exception as e:
         print(f"[ERROR] Failed to update {CONFIG_FILE} with metadata: {e}")
 
-
 # Fetch camera list
 time.sleep(2)
 fetch_camera_list()
@@ -67,18 +103,24 @@ try:
 except Exception as e:
     messagebox.showwarning("Camera Load Warning", f"Unable to load cameras:\n{e}")
 
-
 class LayoutSelector(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Viewport Layout Chooser")
-        self.geometry("400x240")
+        self.geometry("400x300")
         self.grid_size = tk.IntVar(value=2)
+        self.custom_layout = tk.StringVar()
 
         tk.Label(self, text="Select grid size (NxN):").pack(pady=(10, 0))
         tk.Scale(self, from_=1, to=4, orient="horizontal", variable=self.grid_size).pack()
 
-        tk.Button(self, text="Create New Layout", command=self.select_layout).pack(pady=10)
+        tk.Button(self, text="Create Grid Layout", command=self.select_grid_layout).pack(pady=5)
+
+        tk.Label(self, text="Or choose custom layout:").pack(pady=(10, 0))
+        self.custom_menu = ttk.Combobox(self, textvariable=self.custom_layout, values=list(CUSTOM_LAYOUTS.keys()), state="readonly")
+        self.custom_menu.pack()
+
+        tk.Button(self, text="Create Custom Layout", command=self.select_custom_layout).pack(pady=5)
 
         self.has_valid_config = self.check_existing_config()
 
@@ -96,9 +138,15 @@ class LayoutSelector(tk.Tk):
         except Exception:
             return False
 
-    def select_layout(self):
+    def select_grid_layout(self):
         self.withdraw()
         LayoutEditor(self.grid_size.get())
+
+    def select_custom_layout(self):
+        layout = self.custom_layout.get()
+        if layout in CUSTOM_LAYOUTS:
+            self.withdraw()
+            CustomLayoutEditor(layout)
 
     def use_last_layout(self):
         self.withdraw()
@@ -112,7 +160,6 @@ class LayoutSelector(tk.Tk):
     def prompt_for_default(self):
         if self.winfo_exists() and self.has_valid_config:
             self.use_last_layout()
-
 
 class LayoutEditor(tk.Tk):
     def __init__(self, size):
@@ -196,6 +243,84 @@ class LayoutEditor(tk.Tk):
             stderr=subprocess.STDOUT
         )
 
+class CustomLayoutEditor(tk.Tk):
+    def __init__(self, layout_name):
+        super().__init__()
+        self.title(f"Assign Cameras for {layout_name}")
+        layout = CUSTOM_LAYOUTS[layout_name]
+        self.grid_size = layout["grid"]
+        self.tiles = layout["tiles"]
+        self.assignments = [tk.StringVar() for _ in self.tiles]
+
+        frame = tk.Frame(self)
+        frame.pack(padx=10, pady=10)
+
+        for idx, tile in enumerate(self.tiles):
+            var = self.assignments[idx]
+            if idx < len(preferred):
+                var.set(preferred[idx])
+
+            cell = tk.Frame(frame)
+            cell.grid(row=idx, column=0, padx=5, pady=5)
+
+            cb = ttk.Combobox(cell, values=camera_names, textvariable=var, width=30)
+            cb.pack(side=tk.LEFT)
+
+            def on_select(event, var=var, cb=cb):
+                var.set(cb.get())
+            cb.bind("<<ComboboxSelected>>", on_select)
+
+            def preview(var=var):
+                name = var.get()
+                url = camera_map.get(name)
+                if url:
+                    subprocess.Popen(["mpv", "--no-border", "--profile=low-latency", "--untimed", "--rtsp-transport=tcp", url])
+                else:
+                    messagebox.showwarning("Preview Error", f"No valid stream for {name}")
+            tk.Button(cell, text="🔍", command=preview, width=2).pack(side=tk.LEFT)
+
+        tk.Button(self, text="Save Layout and Launch Viewer", command=self.save_config).pack(pady=10)
+
+    def save_config(self):
+        config = {
+            "grid": self.grid_size,
+            "tiles": []
+        }
+
+        for tile, var in zip(self.tiles, self.assignments):
+            name = var.get().strip()
+            url = camera_map.get(name)
+            if name and url:
+                config["tiles"].append({
+                    **tile,
+                    "name": name,
+                    "url": url
+                })
+
+        if not config["tiles"]:
+            messagebox.showerror("Error", "You must assign at least one camera.")
+            return
+
+        try:
+            with open(CONFIG_FILE, "w") as f:
+                json.dump(config, f, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to save config:\n{e}")
+            return
+
+        inject_metadata_into_config()
+
+        messagebox.showinfo("Saved", "Layout saved. Launching viewer...")
+        self.destroy()
+
+        subprocess.Popen(
+            ["./viewport.sh"],
+            cwd=SCRIPT_DIR,
+            stdout=open(os.path.join(SCRIPT_DIR, "viewport.log"), "a"),
+            stderr=subprocess.STDOUT
+        )
 
 if __name__ == "__main__":
     LayoutSelector().mainloop()
