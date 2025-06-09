@@ -1,21 +1,21 @@
-# UniFi RTSP Viewport for Raspberry Pi
+# UniFi RTSP Viewport for Raspberry Pi
 
-A lightweight RTSP viewer system for UniFi cameras, designed to emulate the UniFi Protect Viewport experience using a Raspberry Pi with minimal overhead.
+A lightweight RTSP viewer system for UniFi Protect cameras, designed to emulate the UniFi Protect Viewport experience on a Raspberry Pi with minimal overhead.
 
 ---
 
-## 🧰 Initial Raspberry Pi Setup
+## 🧰 Initial Raspberry Pi Setup
 
-**Recommended OS:** Raspberry Pi OS Lite (64-bit)
-Ideal for headless or kiosk-style deployments.
+**Recommended OS:** Raspberry Pi OS Lite (64‑bit)
+Ideal for headless or kiosk‑style deployments.
 
-### 1. Flash Raspberry Pi OS Lite
+### 1. Flash Raspberry Pi OS Lite
 
-Use the [Raspberry Pi Imager](https://www.raspberrypi.com/software/) to install **Raspberry Pi OS Lite (64-bit)**.
+Use the [Raspberry Pi Imager](https://www.raspberrypi.com/software/) to install **Raspberry Pi OS Lite (64‑bit)**.
 
 ### 2. Log in via SSH or directly
 
-Set hostname, timezone, WiFi, etc. via `raspi-config`:
+Set hostname, timezone, Wi‑Fi, etc. via `raspi-config`:
 
 ```bash
 sudo raspi-config
@@ -24,12 +24,10 @@ sudo raspi-config
 ### 3. Expand Filesystem (Optional)
 
 ```bash
-sudo raspi-config  # Choose: Advanced Options → Expand Filesystem
+sudo raspi-config   # Advanced Options → Expand Filesystem
 ```
 
-### 4. Clone the GitHub Repository
-
-Ensure you have Git installed, then clone the project:
+### 4. Clone the Repository
 
 ```bash
 sudo apt install git -y
@@ -42,59 +40,37 @@ cd unifi-viewport
 
 ## 📦 Installation Options
 
-Choose one of the following installation paths based on your Raspberry Pi OS type and desired complexity.
+Choose the one that best fits your OS and preferences:
 
----
+### 🅰️ Option 1: Full GUI Setup on Raspberry Pi OS Lite
 
-### 🅰️ Option 1: Full Setup on Raspberry Pi OS Lite (Headless or Minimal GUI)
-
-This installs everything needed for a lightweight GUI-based RTSP viewport on a clean Raspberry Pi OS Lite system.
+Installs a minimal GUI (LightDM + Openbox), dependencies, a dedicated `viewport` user with autologin, and configures everything to launch on boot.
 
 ```bash
 chmod +x installgui.sh
 ./installgui.sh
 ```
 
-This script will:
-- Install a minimal GUI (Openbox + LightDM)
-- Create a `viewport` user with autologin
-- Set up the UniFi Viewport environment and dependencies
-- Prompt for UniFi Protect credentials to create `.env`
-- Configure automatic launch of the layout selector
-
-💡 After setup, reboot the Pi and enter raspi-config, change boot to GUI, then set autologin to yes for cmd and GUI, reboot. It will boot directly into the RTSP viewer GUI. You may need to manually run get_streams.py after initial install to generate the json files:
-
-```bash
-cd unifi-viewport
-./get_streams.py
-```
-
-**Best for:** Clean Raspberry Pi Lite OS (64-bit) installs with no desktop environment.
+**Best for:** Clean Raspberry Pi OS Lite (64‑bit) with no existing desktop.
 
 ---
 
-### 🅱️ Option 2: Install on Desktop or GUI System (System-Wide)
+### 🅱️ Option 2: System‑Wide Install on Desktop/GUI OS
 
-If you already have a full Raspberry Pi OS with Desktop or another Linux GUI installed, use this method:
+Installs all required system packages and Python libraries globally.
 
 ```bash
 chmod +x install.sh
 ./install.sh
 ```
 
-This script will:
-- Install all system-wide packages (e.g. mpv, jq, python3-tk)
-- Install Python dependencies globally using pip
-- Prompt for UniFi Protect credentials to create `.env`
-- Prepare scripts for launch
-
-**Best for:** Users with Raspberry Pi OS (with Desktop) or a GUI-capable Linux system already configured.
+**Best for:** Raspberry Pi OS with Desktop already installed, or any Debian‑based GUI system.
 
 ---
 
-### 🅾️ Option 3: Developer Mode with Virtualenv
+### 🅾️ Option 3: Developer Mode with Virtualenv
 
-Install using a virtual environment for isolated testing or CI workflows.
+Creates an isolated Python virtual environment and installs only the Python libraries you need.
 
 ```bash
 chmod +x installpip.sh
@@ -102,77 +78,60 @@ chmod +x installpip.sh
 source venv/bin/activate
 ```
 
-This method:
-- Creates a `venv/` virtual environment
-- Installs Python requirements from `requirements.txt`
-- Prompts for UniFi Protect `.env` credentials
-- Avoids modifying system Python or using `sudo pip`
+**Best for:** Developers, CI/testing, or when you don’t want to modify system Python.
 
-**Best for:** Developers, advanced users, testing environments.
-
+---
 
 ## 🚀 First Run
 
-Once installed, if autolaunch does not occur, launch the layout selector to pull your camera streams and configure your grid:
+If autolaunch doesn’t occur (or you’re using virtualenv), manually fetch your cameras and choose a layout:
 
 ```bash
+source venv/bin/activate   # Skip if you did a system‑wide install
 ./layout_chooser.py
 ```
 
-On subsequent boots, after 10 seconds of inactivity, it will auto-launch the last saved layout.
+After you save a grid once, subsequent reboots will auto‑launch the last layout after a 30 s timeout.
 
 ---
 
 ## 📌 Project Components
 
-* `layout_chooser.py`: GUI to choose grid layout and assign camera streams
-* `get_streams.py`: Pulls available RTSP streams from UniFi Protect using `.env`
-* `viewport.sh`: Launches all selected streams in tiled view
-* `monitor_streams.py`: Monitors stream health and restarts failed tiles
-* `overlay_box.py`: Draws red overlays on tiles that are down
+| File                    | Description                                                                        |
+| ----------------------- | ---------------------------------------------------------------------------------- |
+| `layout_chooser.py`     | GUI to select grid size, assign cameras to tiles, and save `viewport_config.json`. |
+| `get_streams.py`        | Fetches UniFi Protect RTSP URLs and writes `camera_urls.json`.                     |
+| `viewport.sh`           | Shell script to launch all tiles in MPV and start health monitor.                  |
+| `monitor_streams.py`    | Monitors each tile’s MPV process and restarts stale streams.                       |
+| `overlay_box.py`        | (Optional) Draws a red overlay on any tile that is down.                           |
+| `kill_stale_streams.py` | (Optional) Helper to terminate orphaned MPV processes.                             |
 
 ---
 
-## 📁 Key Files
+## 🎛 Configuring UniFi Protect for RTSP
 
-| File                   | Description                         |
-| ---------------------- | ----------------------------------- |
-| `.env`                 | Stores UniFi Protect host/user/pass |
-| `camera_urls.json`     | Auto-generated list of RTSP URLs    |
-| `viewport_config.json` | Layout assignment (tile → camera)   |
-| `camera_urls.txt`      | Optional fallback for raw RTSP URLs |
+1. In UniFi Protect → Camera → Settings → Advanced
+2. Enable **H.264** RTSP (“High”, “Medium”, or “Low”).
+3. Avoid HEVC (H.265) unless your Pi can handle it.
+4. Recording Settings → **Encoding = Standard**.
 
----
-
-## 🎛 Configuring UniFi Protect for RTSP
-
-To ensure compatibility and performance:
-
-1. Go to UniFi Protect → Camera → Settings → Advanced
-2. Enable a **H.264** RTSP stream ("High", "Medium", or "Low")
-3. Avoid HEVC (H.265) unless you know your Pi can decode it
-4. Under "Recording Settings", set **Encoding = Standard**
-
-To refresh your camera list after changes:
+To refresh your camera list after adding or removing cameras:
 
 ```bash
-source venv/bin/activate  # or skip if system-wide
-python get_streams.py
+source venv/bin/activate   # or skip if system‑wide
+python3 get_streams.py
 ```
 
 ---
 
 ## 🧪 Development Notes
 
-For developers:
-
-* All Python dependencies are listed in `requirements.txt`
-* Use `pipinstall.sh` to avoid touching system Python
-* Consider contributing improvements via pull requests
+* All Python dependencies are in `requirements.txt`.
+* `installpip.sh` creates a `venv/` and installs `python-dotenv`, `requests`, `psutil`.
+* Ensure you have `python3-tk`, `python3-psutil`, `xdotool`, `xrandr`, `xdpyinfo`, `mpv`, and `jq` installed for full functionality.
 
 ---
 
-## 🔐 GitHub Authentication for Contributors
+## 🔐 GitHub Contributors
 
-GitHub requires a personal access token (PAT) instead of a password when pushing code.
-Generate one [here](https://github.com/settings/tokens) and use it instead of your GitHub password.
+When pushing code you’ll need a Personal Access Token (PAT) instead of your password. Generate one [here](https://github.com/settings/tokens) and use it in place of your GitHub password.
