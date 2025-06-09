@@ -1,132 +1,131 @@
 #!/bin/bash
-# viewport.sh
-# Description: Launches tiled RTSP streams based on viewport_config.json
-# First-boot forces layout selection; subsequent boots offer timed chooser
+set -euo pipefail
+IFS=$'\n\t'
 
-# --- Section: Setup paths and tools ---
+# viewport.sh (one-step config)
+#  - chooser writes full grid+tiles JSON
+#  - launches streams directly from viewport_config.json
+
 CONFIG_FILE="viewport_config.json"
 LOG_FILE="viewport.log"
 FLAG_FILE="layout_updated.flag"
+CHOOSER_PY="layout_chooser.py"
+MONITOR_PY="monitor_streams.py"
 
 JQ="/usr/bin/jq"
 MPV="/usr/bin/mpv"
 PYTHON="/usr/bin/python3"
 XDOTOOL="/usr/bin/xdotool"
 
-# --- Section: Log start and environment ---
-echo "[INFO] Starting viewport.sh at $(date)" > "$LOG_FILE"
-if [ -z "$DISPLAY" ]; then export DISPLAY=:0; fi
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 
-# --- Section: Cleanup existing streams ---
-echo "[INFO] Killing existing mpv streams..." >> "$LOG_FILE"
-pkill -f "/usr/bin/mpv --no-border"
+# ─── log everything ───────────────────────────────────────────────────────────
+exec > >(tee -a "$LOG_FILE") 2>&1
+echo "[INFO] Starting viewport.sh at $(date)"
+: "${DISPLAY:=:0}"
+
+# ─── kill old streams ────────────────────────────────────────────────────────
+echo "[INFO] Killing existing mpv streams (if any)..."
+pkill -f "$MPV --no-border" || true
 sleep 1
 
-# --- Section: Tool validation ---
+# ─── validate tools ──────────────────────────────────────────────────────────
 for TOOL in "$JQ" "$MPV" "$PYTHON" "$XDOTOOL"; do
-  if [ ! -x "$TOOL" ]; then
-    echo "[ERROR] Required tool not found: $TOOL" >> "$LOG_FILE"
-    exit 1
-  fi
+  [[ -x $TOOL ]] || { echo "[ERROR] Missing tool: $TOOL"; exit 1; }
 done
 
-# --- Section: Valid config check ---
-check_valid_config() {
-  # config must contain non-empty tiles array
-  $JQ -e '.tiles and (.tiles | length > 0)' "$CONFIG_FILE" >/dev/null 2>&1
+# ─── check for a full config (grid+tiles) ────────────────────────────────────
+check_full_config(){
+  $JQ -e '.grid and .tiles and (.tiles|length>0)' "$CONFIG_FILE" &>/dev/null
 }
 
-# --- Section: First-boot layout selection ---
+# ─── chooser (one‐step) ──────────────────────────────────────────────────────
 FIRST_BOOT=0
-if [ ! -f "$CONFIG_FILE" ] || ! check_valid_config; then
-  echo "[WARN] Invalid or missing config, launching chooser (first boot)..." >> "$LOG_FILE"
+if [[ ! -f $CONFIG_FILE ]] || ! check_full_config; then
+  echo "[WARN] No valid config – launching chooser"
   FIRST_BOOT=1
   rm -f "$FLAG_FILE"
-  # blocking chooser until user saves
-  $PYTHON layout_chooser.py >> "$LOG_FILE" 2>&1
-  if [ ! -f "$CONFIG_FILE" ] || ! check_valid_config; then
-    echo "[ERROR] Config still invalid after chooser." >> "$LOG_FILE"
-    exit 1
-  fi
+  "$PYTHON" "$CHOOSER_PY"
 fi
 
-# --- Section: Timed chooser on subsequent boots ---
-if [ "$FIRST_BOOT" -eq 0 ]; then
-  echo "[INFO] Launching layout chooser with timeout..." >> "$LOG_FILE"
+# ─── timed chooser on subsequent boots ───────────────────────────────────────
+if (( FIRST_BOOT == 0 )); then
+  TIMEOUT=30
+  echo "[INFO] Timed chooser (${TIMEOUT}s)..."
   rm -f "$FLAG_FILE"
-  $PYTHON layout_chooser.py >> "$LOG_FILE" 2>&1 &
+  "$PYTHON" "$CHOOSER_PY" &
   CHOOSER_PID=$!
-  TIMEOUT=10
-  for i in $(seq 1 $TIMEOUT); do
-    if [ -f "$FLAG_FILE" ]; then
-      echo "[INFO] Layout updated by user." >> "$LOG_FILE"
-      break
-    fi
+  for _ in $(seq 1 $TIMEOUT); do
+    [[ -f $FLAG_FILE ]] && { echo "[INFO] Layout updated"; break; }
     sleep 1
   done
-  if ps -p $CHOOSER_PID >/dev/null; then
-    echo "[INFO] Chooser timed out, closing..." >> "$LOG_FILE"
-    kill $CHOOSER_PID
+  if ps -p "$CHOOSER_PID" &>/dev/null; then
+    echo "[INFO] Chooser timed out – killing"
+    kill "$CHOOSER_PID"
     sleep 1
   fi
   rm -f "$FLAG_FILE"
 fi
 
-# --- Section: Detect display resolution ---
-WIDTH=$($XDOTOOL getdisplaygeometry | awk '{print $1}')
-HEIGHT=$($XDOTOOL getdisplaygeometry | awk '{print $2}')
-if [ -z "$WIDTH" ] || [ -z "$HEIGHT" ]; then
-  WIDTH=3840; HEIGHT=2160
-  echo "[WARN] Using fallback resolution ${WIDTH}x${HEIGHT}" >> "$LOG_FILE"
+# ─── ensure we now have a full config ────────────────────────────────────────
+if ! check_full_config; then
+  echo "[ERROR] viewport_config.json still invalid; aborting"
+  exit 1
 fi
 
-# --- Section: Parse grid layout ---
-ROWS=$($JQ '.grid[0]' "$CONFIG_FILE")
-COLS=$($JQ '.grid[1]' "$CONFIG_FILE")
-WIN_W=$((WIDTH / COLS))
-WIN_H=$((HEIGHT / ROWS))
-export WIN_W WIN_H
+# ─── detect display resolution safely ────────────────────────────────────────
+if IFS=' ' read -r WIDTH HEIGHT <<< "$($XDOTOOL getdisplaygeometry)"; then
+  echo "[INFO] Detected display geometry: ${WIDTH}×${HEIGHT}"
+else
+  WIDTH=3840; HEIGHT=2160
+  echo "[WARN] Could not detect geometry – using fallback ${WIDTH}×${HEIGHT}"
+fi
 
-# --- Section: Pi5 hardware decode ---
-if grep -qi "raspberry pi 5" /proc/device-tree/model 2>/dev/null; then
+# ─── parse grid with safe defaults ───────────────────────────────────────────
+ROWS=$($JQ -r '.grid[0] // 1' "$CONFIG_FILE")
+COLS=$($JQ -r '.grid[1] // 1' "$CONFIG_FILE")
+(( ROWS<1 )) && ROWS=1
+(( COLS<1 )) && COLS=1
+WIN_W=$(( WIDTH / COLS ))
+WIN_H=$(( HEIGHT / ROWS ))
+echo "[DEBUG] Grid: ${ROWS}×${COLS}, tile size: ${WIN_W}×${WIN_H}"
+
+# ─── hwdec hint (optional) ─────────────────────────────────────────────────
+if grep -qi "raspberry pi 5" /proc/device-tree/model &>/dev/null; then
   HWDEC="--hwdec=auto"
 else
   HWDEC=""
 fi
 
-# --- Section: Launch stream tiles ---
+# ─── launch each tile ────────────────────────────────────────────────────────
 $JQ -c '.tiles[]' "$CONFIG_FILE" | while read -r tile; do
-  ROW=$(echo "$tile" | $JQ '.row')
-  COL=$(echo "$tile" | $JQ '.col')
-  W=$(echo "$tile" | $JQ '.w // 1')
-  H=$(echo "$tile" | $JQ '.h // 1')
-  NAME=$(echo "$tile" | $JQ -r '.name')
-  URL=$(echo "$tile" | $JQ -r '.url')
-  if [ -z "$URL" ] || [ "$URL" == "null" ]; then
-    echo "[WARN] Skipping empty URL for $NAME" >> "$LOG_FILE"
-    continue
-  fi
+  read ROW COL W H NAME URL <<<"$(
+    echo "$tile" | $JQ -r '[.row,.col,(.w//1),(.h//1),.name,.url]|@tsv'
+  )"
+  [[ $URL && $URL!="null" ]] || continue
+
+  # sanitized RTSP
   URL=$(echo "$URL" | sed -E 's|rtsps://([^:/]+):7441|rtsp://\1:7447|')
-  TILE_W=$((WIN_W * W)); TILE_H=$((WIN_H * H))
-  X=$((COL * WIN_W)); Y=$((ROW * WIN_H))
-  TITLE="tile_${ROW}_${COL}"
-  echo "[INFO] Launching $NAME at ${TILE_W}x${TILE_H}+${X}+${Y}" >> "$LOG_FILE"
-  $MPV --no-border --geometry=${TILE_W}x${TILE_H}+${X}+${Y} \
-       --profile=low-latency --untimed --no-correct-pts \
-       --video-sync=desync --framedrop=vo \
-       --rtsp-transport=tcp --loop=inf --no-resume-playback \
-       --no-cache --demuxer-readahead-secs=1 --fps=24 \
-       --force-seekable=yes --vo=gpu $HWDEC \
-       --title="$TITLE" --no-audio --keep-open=yes \
-       "$URL" >> "$LOG_FILE" 2>&1 &
+
+  TW=$(( WIN_W * W )); TH=$(( WIN_H * H ))
+  X=$(( COL * WIN_W )); Y=$(( ROW * WIN_H ))
+
+  echo "[INFO] Launching \"$NAME\" @ ${TW}×${TH}+${X}+${Y}"
+  "$MPV" --no-border --geometry=${TW}x${TH}+${X}+${Y} \
+    --profile=low-latency --untimed --no-correct-pts \
+    --video-sync=desync --framedrop=vo --rtsp-transport=tcp \
+    --loop=inf --no-resume-playback --no-cache \
+    --demuxer-readahead-secs=1 --fps=24 --force-seekable=yes \
+    --vo=gpu $HWDEC --title="tile_${ROW}_${COL}" \
+    --no-audio --keep-open=yes "$URL" &
 done
 
-# --- Section: Start health monitor ---
-if [ -f monitor_streams.py ]; then
-  echo "[INFO] Starting monitor_streams.py..." >> "$LOG_FILE"
-  $PYTHON monitor_streams.py >> "$LOG_FILE" 2>&1 &
+# ─── start health monitor ───────────────────────────────────────────────────
+if [[ -f $MONITOR_PY ]]; then
+  echo "[INFO] Starting health monitor"
+  "$PYTHON" "$MONITOR_PY" &
 else
-  echo "[WARN] monitor_streams.py not found; skipping" >> "$LOG_FILE"
+  echo "[WARN] Health monitor missing – skipping"
 fi
 
 wait
