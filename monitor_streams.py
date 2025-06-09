@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
 monitor_streams.py
-Description: Monitors and restarts stale or missing mpv RTSP stream processes based on viewport_config.json.
-Supports tile multipliers (w, h) and hardware decoding on Raspberry Pi 5.
+Description:
+  - Monitors and restarts stale or missing mpv RTSP stream processes based on viewport_config.json.
+  - Supports tile multipliers (w, h) and hardware decoding on Raspberry Pi 5.
 """
 
 import time
@@ -15,10 +16,9 @@ import re
 CONFIG_FILE = "viewport_config.json"
 LOG_FILE = "viewport.log"
 MPV_BIN = "/usr/bin/mpv"
-CHECK_INTERVAL = 5          # seconds between health checks
-RESTART_COOLDOWN = 5        # seconds between restarts per tile
+CHECK_INTERVAL = 5       # seconds between health checks
+RESTART_COOLDOWN = 5     # seconds between restarts per tile
 
-# Track last restart timestamps per tile
 title_last_restart = {}
 
 # --- Section: Logging Utility ---
@@ -39,6 +39,7 @@ def get_screen_resolution():
     except Exception as e:
         log(f"xdpyinfo error: {e}")
     return 1920, 1080  # fallback
+
 
 def get_grid_dimensions():
     try:
@@ -111,7 +112,6 @@ def launch_stream(row: int, col: int, name: str, url: str, tile: dict):
         "--keep-open=yes",
         url
     ]
-    # Launch the process without blocking
     subprocess.Popen(cmd, stdout=open(LOG_FILE, "a"), stderr=subprocess.STDOUT)
     title_last_restart[title] = time.time()
 
