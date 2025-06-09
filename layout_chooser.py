@@ -3,8 +3,11 @@
 layout_chooser.py
 
 Two-step GUI:
- 1) choose grid size
+ 1) choose a layout
  2) assign cameras to each tile
+
+On any user interaction (dropdown selection), writes layout_updated.flag,
+so the killer loop in viewport.sh will back off.
 """
 
 import os
@@ -58,32 +61,39 @@ CUSTOM_LAYOUTS = {
     },
 }
 
+SIMPLE_LAYOUTS = ["1x1", "2x1", "2x2", "3x3"]
+ALL_OPTIONS    = SIMPLE_LAYOUTS + list(CUSTOM_LAYOUTS.keys())
+
+def signal_interaction():
+    """Touch the flag file so viewport.sh stops killing our window."""
+    try:
+        open(FLAG_FILE, "w").close()
+    except:
+        pass
 
 def fetch_camera_list():
     """Populate camera_urls.json via get_streams.py"""
     try:
         subprocess.run(
             ["python3", GET_STREAMS, "--list"],
-            cwd=SCRIPT_DIR,
-            check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
+            cwd=SCRIPT_DIR, check=True,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
         )
     except subprocess.CalledProcessError:
-        messagebox.showwarning("Camera Fetch Warning", "Could not fetch camera list.")
-
+        # Startup fetch may fail; we'll warn if needed later
+        pass
 
 def load_cameras():
     """Return (names, url_map)"""
+    if not os.path.isfile(CAMERA_FILE):
+        return [], {}
     try:
-        with open(CAMERA_FILE) as f:
-            cams = json.load(f)
+        cams = json.load(open(CAMERA_FILE))
+        names = sorted(c["name"] for c in cams if "name" in c)
+        urls  = {c["name"]: c.get("url","") for c in cams}
+        return names, urls
     except:
         return [], {}
-    names = sorted(c["name"] for c in cams if "name" in c)
-    url_map = {c["name"]: c.get("url","") for c in cams}
-    return names, url_map
-
 
 class LayoutChooser(tk.Tk):
     def __init__(self):
@@ -92,22 +102,26 @@ class LayoutChooser(tk.Tk):
         self.geometry("800x600")
         self.resizable(False, False)
 
-        # load cameras once
+        # Load cameras (deferred fetch)
         fetch_camera_list()
         self.cam_names, self.cam_urls = load_cameras()
 
-        # step1 UI
+        # Step 1 UI
         self.frame1 = tk.Frame(self)
         tk.Label(self.frame1, text="Step 1: Select layout", font=("Arial",14)).pack(pady=20)
+
         self.choice = tk.StringVar()
-        opts = ["1x1","2x1","2x2","3x3"] + list(CUSTOM_LAYOUTS.keys())
-        self.menu = ttk.Combobox(self.frame1, values=opts, textvariable=self.choice,
-                                 state="readonly", font=("Arial",12), width=20)
-        self.menu.pack(pady=10)
+        cmb = ttk.Combobox(
+            self.frame1, values=ALL_OPTIONS,
+            textvariable=self.choice, state="readonly",
+            font=("Arial",12), width=30
+        )
+        cmb.pack(pady=10)
+        cmb.bind("<<ComboboxSelected>>", lambda e: signal_interaction())
+
         tk.Button(self.frame1, text="Next →", command=self._on_next, width=20).pack(pady=30)
         self.frame1.pack(fill="both", expand=True)
 
-        # placeholder for step2
         self.frame2 = None
         self.current_cfg = {}
 
@@ -117,24 +131,18 @@ class LayoutChooser(tk.Tk):
             messagebox.showerror("Error", "Please choose a layout.")
             return
 
-        # build base config (no names/urls yet)
+        signal_interaction()  # stop the killer
+        # Build base config
         if sel in CUSTOM_LAYOUTS:
-            cfg = {
-                "grid": CUSTOM_LAYOUTS[sel]["grid"][:],
-                "tiles": [t.copy() for t in CUSTOM_LAYOUTS[sel]["tiles"]]
-            }
+            spec = CUSTOM_LAYOUTS[sel]
+            cfg = {"grid": spec["grid"][:], "tiles": [t.copy() for t in spec["tiles"]]}
         else:
             r, c = map(int, sel.split("x"))
             cfg = {"grid": [r, c], "tiles": []}
-            for idx in range(r*c):
-                cfg["tiles"].append({
-                    "row": idx//c,
-                    "col": idx%c,
-                    "w": 1, "h": 1
-                })
-        self.current_cfg = cfg
+            for i in range(r*c):
+                cfg["tiles"].append({"row": i//c, "col": i%c, "w":1, "h":1})
 
-        # go to step2
+        self.current_cfg = cfg
         self.frame1.pack_forget()
         self._show_camera_assignment()
 
@@ -148,16 +156,25 @@ class LayoutChooser(tk.Tk):
         self.sel_vars = []
         for tile in self.current_cfg["tiles"]:
             r, c = tile["row"], tile["col"]
-            lbl = tk.Label(grid_frame, text=f"Tile {r},{c}")
-            lbl.grid(row=r, column=c*2, padx=5, pady=5, sticky="e")
+            tk.Label(grid_frame, text=f"Tile {r},{c}", font=("Arial",12))\
+              .grid(row=r, column=c*2, padx=5, pady=5, sticky="e")
+
             var = tk.StringVar()
-            cb = ttk.Combobox(grid_frame, values=self.cam_names, textvariable=var,
-                              state="readonly", width=20)
+            cb = ttk.Combobox(
+                grid_frame, values=self.cam_names,
+                textvariable=var, state="readonly",
+                width=40, font=("Arial",12)
+            )
             cb.grid(row=r, column=c*2+1, padx=5, pady=5, sticky="w")
+            cb.bind("<<ComboboxSelected>>", lambda e: signal_interaction())
             self.sel_vars.append((var, tile))
 
-        tk.Button(self.frame2, text="← Back", command=self._go_back, width=12).pack(side="left", padx=30, pady=20)
-        tk.Button(self.frame2, text="Save & Launch", command=self._on_save, width=16).pack(side="right", padx=30, pady=20)
+        btnf = tk.Frame(self.frame2)
+        btnf.pack(pady=20, fill="x")
+        tk.Button(btnf, text="← Back", command=self._go_back, width=12)\
+          .pack(side="left", padx=30)
+        tk.Button(btnf, text="Save & Launch", command=self._on_save, width=16)\
+          .pack(side="right", padx=30)
 
         self.frame2.pack(fill="both", expand=True)
 
@@ -166,11 +183,12 @@ class LayoutChooser(tk.Tk):
         self.frame1.pack(fill="both", expand=True)
 
     def _on_save(self):
-        # collect selections
+        signal_interaction()
+        # collect assignments
         for var, tile in self.sel_vars:
             name = var.get()
             if not name:
-                messagebox.showerror("Error", "Every tile needs a camera.")
+                messagebox.showerror("Error", "Every tile must have a camera.")
                 return
             tile["name"] = name
             tile["url"]  = self.cam_urls.get(name, "")
@@ -179,16 +197,13 @@ class LayoutChooser(tk.Tk):
         try:
             with open(CONFIG_FILE, "w") as f:
                 json.dump(self.current_cfg, f, indent=2)
+            open(FLAG_FILE, "w").close()
         except Exception as e:
-            messagebox.showerror("Error", f"Could not write config:\n{e}")
+            messagebox.showerror("Error", f"Failed to save config:\n{e}")
             return
-
-        # touch flag
-        open(FLAG_FILE, "w").write("updated")
 
         messagebox.showinfo("Saved", "Configuration saved!\nLaunching streams…")
         self.destroy()
-
 
 if __name__ == "__main__":
     LayoutChooser().mainloop()
