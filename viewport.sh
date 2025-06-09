@@ -7,19 +7,28 @@ JQ="/usr/bin/jq"
 MPV="/usr/bin/mpv"
 PYTHON="/usr/bin/python3"
 
+# Log start
 echo "[INFO] Starting viewport.sh at $(date)" > "$LOG_FILE"
 
+# Ensure DISPLAY is set
 if [ -z "$DISPLAY" ]; then
   export DISPLAY=:0
 fi
 
-for TOOL in "$JQ" "$MPV" "$PYTHON"; do
+# Kill any existing mpv processes to avoid stacking
+echo "[INFO] Killing existing mpv streams..." >> "$LOG_FILE"
+pkill -f "/usr/bin/mpv --no-border"
+sleep 1
+
+# Check required tools
+for TOOL in "$JQ" "$MPV" "$PYTHON" "/usr/bin/xdotool"; do
   if [ ! -x "$TOOL" ]; then
     echo "[ERROR] Required tool not found: $TOOL" >> "$LOG_FILE"
     exit 1
   fi
 done
 
+# Validate config file
 if [ ! -f "$CONFIG_FILE" ] || ! $JQ empty "$CONFIG_FILE" >/dev/null 2>&1; then
   echo "[ERROR] Invalid or missing $CONFIG_FILE" >> "$LOG_FILE"
   exit 1
@@ -60,6 +69,32 @@ else
   HWDEC=""
 fi
 
+# Launch layout chooser with interaction detection
+echo "[INFO] Launching layout chooser..." >> "$LOG_FILE"
+$PYTHON layout_chooser.py &
+CHOOSER_PID=$!
+
+WAIT_TIME=0
+MAX_WAIT=10
+
+while ps -p $CHOOSER_PID > /dev/null; do
+  FOCUSED_PID=$(xdotool getwindowfocus getwindowpid 2>/dev/null)
+  if [ "$FOCUSED_PID" == "$CHOOSER_PID" ]; then
+    WAIT_TIME=0
+  else
+    WAIT_TIME=$((WAIT_TIME + 1))
+  fi
+
+  if [ "$WAIT_TIME" -ge "$MAX_WAIT" ]; then
+    echo "[INFO] Layout chooser timed out with no interaction; proceeding..." >> "$LOG_FILE"
+    kill $CHOOSER_PID
+    sleep 1
+    break
+  fi
+
+  sleep 1
+done
+
 # Launch each stream
 $JQ -c '.tiles[]' "$CONFIG_FILE" | while read -r tile; do
   ROW=$(echo "$tile" | $JQ '.row')
@@ -91,7 +126,6 @@ $JQ -c '.tiles[]' "$CONFIG_FILE" | while read -r tile; do
      --title="$TITLE" --no-audio \
      --length=inf --keep-open=yes \
      "$URL" >> "$LOG_FILE" 2>&1 &
-
 done
 
 # Launch stream monitor
