@@ -1,280 +1,194 @@
 #!/usr/bin/env python3
 """
 layout_chooser.py
-Description: GUI for selecting and saving camera grid layouts for viewport.sh.
-Fetch is deferred until user explicitly requests a new layout; all fetch errors are logged silently.
+
+Two-step GUI:
+ 1) choose grid size
+ 2) assign cameras to each tile
 """
+
 import os
-import subprocess
 import json
-import logging
+import subprocess
 import tkinter as tk
 from tkinter import ttk, messagebox
 
-# --- Section: File paths and logging ---
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-CAMERA_FILE = os.path.join(SCRIPT_DIR, "camera_urls.json")
-CONFIG_FILE = os.path.join(SCRIPT_DIR, "viewport_config.json")
-FLAG_FILE = os.path.join(SCRIPT_DIR, "layout_updated.flag")
+SCRIPT_DIR    = os.path.dirname(os.path.abspath(__file__))
+CAMERA_FILE   = os.path.join(SCRIPT_DIR, "camera_urls.json")
+CONFIG_FILE   = os.path.join(SCRIPT_DIR, "viewport_config.json")
+FLAG_FILE     = os.path.join(SCRIPT_DIR, "layout_updated.flag")
+GET_STREAMS   = os.path.join(SCRIPT_DIR, "get_streams.py")
 
-LOG_FILE = os.path.join(SCRIPT_DIR, "viewport.log")
-logging.basicConfig(
-    filename=LOG_FILE,
-    level=logging.INFO,
-    format='[CHOOSER %(asctime)s] %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-
-# --- Section: Predefined Custom Layouts ---
 CUSTOM_LAYOUTS = {
-    "2x1": {"grid": [1, 2], "tiles": [
-        {"row": 0, "col": 0, "w": 1, "h": 1},
-        {"row": 0, "col": 1, "w": 1, "h": 1}
-    ]},
-    "3_custom": {"grid": [2, 2], "tiles": [
-        {"row": 0, "col": 0, "w": 1, "h": 2},
-        {"row": 0, "col": 1, "w": 1, "h": 1},
-        {"row": 1, "col": 1, "w": 1, "h": 1}
-    ]},
-    "5_custom": {"grid": [2, 3], "tiles": [
-        {"row": 0, "col": 0, "w": 2, "h": 2},
-        {"row": 0, "col": 1, "w": 1, "h": 1},
-        {"row": 1, "col": 1, "w": 1, "h": 1},
-        {"row": 0, "col": 2, "w": 1, "h": 1},
-        {"row": 1, "col": 2, "w": 1, "h": 1}
-    ]},
-    "6_custom": {"grid": [3, 3], "tiles": [
-        {"row": 0, "col": 0, "w": 2, "h": 2},
-        {"row": 0, "col": 2, "w": 1, "h": 1},
-        {"row": 1, "col": 2, "w": 1, "h": 1},
-        {"row": 2, "col": 0, "w": 1, "h": 1},
-        {"row": 2, "col": 1, "w": 1, "h": 1},
-        {"row": 2, "col": 2, "w": 1, "h": 1}
-    ]}
+    "2x1": {
+        "grid": [1, 2],
+        "tiles": [
+            {"row": 0, "col": 0, "w": 1, "h": 1},
+            {"row": 0, "col": 1, "w": 1, "h": 1},
+        ]
+    },
+    "3_custom": {
+        "grid": [2, 2],
+        "tiles": [
+            {"row": 0, "col": 0, "w": 1, "h": 2},
+            {"row": 0, "col": 1, "w": 1, "h": 1},
+            {"row": 1, "col": 1, "w": 1, "h": 1},
+        ]
+    },
+    "5_custom": {
+        "grid": [2, 3],
+        "tiles": [
+            {"row": 0, "col": 0, "w": 2, "h": 2},
+            {"row": 0, "col": 1, "w": 1, "h": 1},
+            {"row": 1, "col": 1, "w": 1, "h": 1},
+            {"row": 0, "col": 2, "w": 1, "h": 1},
+            {"row": 1, "col": 2, "w": 1, "h": 1},
+        ]
+    },
+    "6_custom": {
+        "grid": [3, 3],
+        "tiles": [
+            {"row": 0, "col": 0, "w": 2, "h": 2},
+            {"row": 0, "col": 2, "w": 1, "h": 1},
+            {"row": 1, "col": 2, "w": 1, "h": 1},
+            {"row": 2, "col": 0, "w": 1, "h": 1},
+            {"row": 2, "col": 1, "w": 1, "h": 1},
+            {"row": 2, "col": 2, "w": 1, "h": 1},
+        ]
+    },
 }
 
-# --- Section: Camera loading (deferred) ---
+
 def fetch_camera_list():
-    """Fetch camera list via get_streams.py, logging any errors silently."""
+    """Populate camera_urls.json via get_streams.py"""
     try:
         subprocess.run(
-            ["python3", os.path.join(SCRIPT_DIR, "get_streams.py")],
+            ["python3", GET_STREAMS, "--list"],
             cwd=SCRIPT_DIR,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
             check=True,
-            text=True
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
         )
-    except subprocess.CalledProcessError as e:
-        logging.warning(f"get_streams.py failed (exit {e.returncode}): {e.stderr.strip()}")
-    except OSError as e:
-        logging.warning(f"get_streams.py OS error: {e}")
+    except subprocess.CalledProcessError:
+        messagebox.showwarning("Camera Fetch Warning", "Could not fetch camera list.")
 
-# --- Section: Metadata injection ---
-def inject_metadata_into_config():
+
+def load_cameras():
+    """Return (names, url_map)"""
     try:
         with open(CAMERA_FILE) as f:
-            camera_list = json.load(f)
-        camera_map = {cam["name"]: cam for cam in camera_list if "name" in cam}
-    except Exception as e:
-        logging.error(f"Failed to load {CAMERA_FILE}: {e}")
-        return
+            cams = json.load(f)
+    except:
+        return [], {}
+    names = sorted(c["name"] for c in cams if "name" in c)
+    url_map = {c["name"]: c.get("url","") for c in cams}
+    return names, url_map
 
-    try:
-        with open(CONFIG_FILE) as f:
-            config = json.load(f)
-        for tile in config.get("tiles", []):
-            meta = camera_map.get(tile.get("name", ""), {})
-            for key in ("width","height","fps","codec_name","pix_fmt","profile"):  # optional
-                if key in meta:
-                    tile[key] = meta[key]
-        with open(CONFIG_FILE, 'w') as f:
-            json.dump(config, f, indent=2)
-    except Exception as e:
-        logging.error(f"Failed to update {CONFIG_FILE} with metadata: {e}")
 
-# --- Section: Main GUI ---
-class LayoutSelector(tk.Tk):
+class LayoutChooser(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Viewport Layout Chooser")
-        self.geometry("400x300")
-        self.grid_size = tk.IntVar(value=2)
-        self.custom_layout = tk.StringVar()
+        self.geometry("800x600")
+        self.resizable(False, False)
 
-        tk.Label(self, text="Select grid size (NxN):").pack(pady=(10,0))
-        tk.Scale(self, from_=1, to=4, orient="horizontal", variable=self.grid_size).pack()
-        tk.Button(self, text="New Grid Layout", command=self.new_grid_layout).pack(pady=5)
-
-        tk.Label(self, text="Or choose custom layout:").pack(pady=(10,0))
-        self.custom_menu = ttk.Combobox(
-            self, textvariable=self.custom_layout,
-            values=list(CUSTOM_LAYOUTS.keys()), state="readonly"
-        )
-        self.custom_menu.pack()
-        tk.Button(self, text="New Custom Layout", command=self.new_custom_layout).pack(pady=5)
-
-        # If there is already a valid config, offer to reuse it
-        if self.check_existing_config():
-            tk.Button(self, text="Use Last Layout", command=self.use_last_layout).pack(pady=5)
-            self.after(10000, self.use_last_layout)
-
-    def check_existing_config(self):
-        try:
-            with open(CONFIG_FILE) as f:
-                data = json.load(f)
-            return bool(data.get("tiles"))
-        except Exception:
-            return False
-
-    def new_grid_layout(self):
+        # load cameras once
         fetch_camera_list()
-        self.withdraw()
-        LayoutEditor(self, size=self.grid_size.get())
+        self.cam_names, self.cam_urls = load_cameras()
 
-    def new_custom_layout(self):
-        fetch_camera_list()
-        self.withdraw()
-        CustomLayoutEditor(self)
+        # step1 UI
+        self.frame1 = tk.Frame(self)
+        tk.Label(self.frame1, text="Step 1: Select layout", font=("Arial",14)).pack(pady=20)
+        self.choice = tk.StringVar()
+        opts = ["1x1","2x1","2x2","3x3"] + list(CUSTOM_LAYOUTS.keys())
+        self.menu = ttk.Combobox(self.frame1, values=opts, textvariable=self.choice,
+                                 state="readonly", font=("Arial",12), width=20)
+        self.menu.pack(pady=10)
+        tk.Button(self.frame1, text="Next →", command=self._on_next, width=20).pack(pady=30)
+        self.frame1.pack(fill="both", expand=True)
 
-    def use_last_layout(self):
+        # placeholder for step2
+        self.frame2 = None
+        self.current_cfg = {}
+
+    def _on_next(self):
+        sel = self.choice.get()
+        if not sel:
+            messagebox.showerror("Error", "Please choose a layout.")
+            return
+
+        # build base config (no names/urls yet)
+        if sel in CUSTOM_LAYOUTS:
+            cfg = {
+                "grid": CUSTOM_LAYOUTS[sel]["grid"][:],
+                "tiles": [t.copy() for t in CUSTOM_LAYOUTS[sel]["tiles"]]
+            }
+        else:
+            r, c = map(int, sel.split("x"))
+            cfg = {"grid": [r, c], "tiles": []}
+            for idx in range(r*c):
+                cfg["tiles"].append({
+                    "row": idx//c,
+                    "col": idx%c,
+                    "w": 1, "h": 1
+                })
+        self.current_cfg = cfg
+
+        # go to step2
+        self.frame1.pack_forget()
+        self._show_camera_assignment()
+
+    def _show_camera_assignment(self):
+        self.frame2 = tk.Frame(self)
+        tk.Label(self.frame2, text="Step 2: Assign cameras", font=("Arial",14)).pack(pady=10)
+
+        grid_frame = tk.Frame(self.frame2)
+        grid_frame.pack(pady=10)
+
+        self.sel_vars = []
+        for tile in self.current_cfg["tiles"]:
+            r, c = tile["row"], tile["col"]
+            lbl = tk.Label(grid_frame, text=f"Tile {r},{c}")
+            lbl.grid(row=r, column=c*2, padx=5, pady=5, sticky="e")
+            var = tk.StringVar()
+            cb = ttk.Combobox(grid_frame, values=self.cam_names, textvariable=var,
+                              state="readonly", width=20)
+            cb.grid(row=r, column=c*2+1, padx=5, pady=5, sticky="w")
+            self.sel_vars.append((var, tile))
+
+        tk.Button(self.frame2, text="← Back", command=self._go_back, width=12).pack(side="left", padx=30, pady=20)
+        tk.Button(self.frame2, text="Save & Launch", command=self._on_save, width=16).pack(side="right", padx=30, pady=20)
+
+        self.frame2.pack(fill="both", expand=True)
+
+    def _go_back(self):
+        self.frame2.pack_forget()
+        self.frame1.pack(fill="both", expand=True)
+
+    def _on_save(self):
+        # collect selections
+        for var, tile in self.sel_vars:
+            name = var.get()
+            if not name:
+                messagebox.showerror("Error", "Every tile needs a camera.")
+                return
+            tile["name"] = name
+            tile["url"]  = self.cam_urls.get(name, "")
+
+        # write config
         try:
-            with open(FLAG_FILE, 'w') as f:
-                f.write('updated')
+            with open(CONFIG_FILE, "w") as f:
+                json.dump(self.current_cfg, f, indent=2)
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to set flag:\n{e}")
+            messagebox.showerror("Error", f"Could not write config:\n{e}")
+            return
+
+        # touch flag
+        open(FLAG_FILE, "w").write("updated")
+
+        messagebox.showinfo("Saved", "Configuration saved!\nLaunching streams…")
         self.destroy()
 
-# --- Section: Grid Editor ---
-class LayoutEditor(tk.Toplevel):
-    def __init__(self, parent, size=2):
-        super().__init__(parent)
-        self.parent = parent
-        self.size = size
-        self.title(f"Assign Cameras {size}×{size}")
-        self.assignments = [[tk.StringVar() for _ in range(size)] for _ in range(size)]
 
-        # Load cameras for dropdowns
-        try:
-            with open(CAMERA_FILE) as f:
-                cams = json.load(f)
-            names = sorted(cam['name'] for cam in cams if 'name' in cam)
-            preferred = [n for n in names if any(r in n for r in ['1920x1080','1280x720'])]
-            options = preferred[:size*size] or names[:size*size]
-        except Exception:
-            options = []
-            names = []
-
-        frame = tk.Frame(self)
-        frame.pack(padx=10, pady=10)
-        for r in range(size):
-            for c in range(size):
-                var = self.assignments[r][c]
-                idx = r*size + c
-                if idx < len(options): var.set(options[idx])
-                cell = tk.Frame(frame)
-                cell.grid(row=r, column=c, padx=5, pady=5)
-                cb = ttk.Combobox(cell, values=names, textvariable=var, width=25)
-                cb.pack(side=tk.LEFT)
-                tk.Button(cell, text="🔍", command=lambda v=var: self.preview(v), width=2).pack(side=tk.LEFT)
-
-        tk.Button(self, text="Save Layout", command=self.save_config).pack(pady=10)
-
-    def preview(self, var):
-        url = json.load(open(CAMERA_FILE)).get(var.get(), '')
-        if url:
-            subprocess.Popen(["mpv","--no-border","--profile=low-latency","--untimed","--rtsp-transport=tcp", url])
-        else:
-            messagebox.showwarning("Preview Error", "No valid stream for selected camera.")
-
-    def save_config(self):
-        cfg = {"grid":[self.size, self.size], "tiles": []}
-        for r in range(self.size):
-            for c in range(self.size):
-                name = self.assignments[r][c].get().strip()
-                # reload map
-                with open(CAMERA_FILE) as f:
-                    camera_map = {cam['name']: cam['url'] for cam in json.load(f)}
-                url = camera_map.get(name, '')
-                if name and url:
-                    cfg['tiles'].append({"row":r, "col":c, "name":name, "url":url})
-
-        if not cfg['tiles']:
-            messagebox.showerror("Error","You must assign at least one camera.")
-            return
-        try:
-            with open(CONFIG_FILE,'w') as f:
-                json.dump(cfg, f, indent=2)
-                f.flush(); os.fsync(f.fileno())
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to save config:\n{e}")
-            return
-        inject_metadata_into_config()
-        with open(FLAG_FILE,'w') as f: f.write('updated')
-        messagebox.showinfo("Saved","Layout saved.")
-        self.parent.destroy()
-
-# --- Section: Custom Layout Editor ---
-class CustomLayoutEditor(tk.Toplevel):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.parent = parent
-        self.title("Select Custom Layout")
-        self.var = tk.StringVar()
-        ttk.Combobox(self, values=list(CUSTOM_LAYOUTS.keys()), textvariable=self.var, state="readonly").pack(pady=10)
-        tk.Button(self, text="Select", command=self.build_editor).pack(pady=5)
-
-    def build_editor(self):
-        layout_name = self.var.get()
-        if not layout_name:
-            messagebox.showerror("Error","Pick a custom layout.")
-            return
-        layout = CUSTOM_LAYOUTS[layout_name]
-        self.geometry("")
-        self.assignments = []
-        frame = tk.Frame(self)
-        frame.pack(padx=10, pady=10)
-        for idx, tile in enumerate(layout['tiles']):
-            var = tk.StringVar()
-            self.assignments.append(var)
-            cell = tk.Frame(frame)
-            cell.grid(row=idx, column=0, padx=5, pady=5)
-            cb = ttk.Combobox(cell, values=list(json.load(open(CAMERA_FILE))[0].keys()), textvariable=var, width=30)
-            cb.pack(side=tk.LEFT)
-            tk.Button(cell, text="🔍", command=lambda v=var: self.preview(v), width=2).pack(side=tk.LEFT)
-        tk.Button(self, text="Save Layout", command=lambda: self.save_config(layout_name)).pack(pady=10)
-
-    def preview(self, var):
-        url = json.load(open(CAMERA_FILE)).get(var.get(), '')
-        if url:
-            subprocess.Popen(["mpv","--no-border","--profile=low-latency","--untimed","--rtsp-transport=tcp", url])
-        else:
-            messagebox.showwarning("Preview Error","No valid stream for selected camera.")
-
-    def save_config(self, name):
-        layout = CUSTOM_LAYOUTS[name]
-        cfg = {"grid": layout["grid"], "tiles": []}
-        camera_map = {cam['name']: cam['url'] for cam in json.load(open(CAMERA_FILE))}
-        for tile, var in zip(layout['tiles'], self.assignments):
-            nm = var.get().strip()
-            url = camera_map.get(nm, '')
-            if nm and url:
-                cfg['tiles'].append({**tile, 'name': nm, 'url': url})
-        if not cfg['tiles']:
-            messagebox.showerror("Error","Assign at least one camera.")
-            return
-        try:
-            with open(CONFIG_FILE,'w') as f:
-                json.dump(cfg, f, indent=2)
-                f.flush(); os.fsync(f.fileno())
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to save config:\n{e}")
-            return
-        inject_metadata_into_config()
-        with open(FLAG_FILE,'w') as f: f.write('updated')
-        messagebox.showinfo("Saved","Layout saved.")
-        self.parent.destroy()
-
-# --- Entry Point ---
-if __name__ == '__main__':
-    LayoutSelector().mainloop()
+if __name__ == "__main__":
+    LayoutChooser().mainloop()
