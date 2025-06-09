@@ -2,10 +2,12 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+# ── Configuration ─────────────────────────────────────────────────────────────
 CONFIG="viewport_config.json"
 LOG="viewport.log"
-CHOOSER_PY="layout_chooser.py"
-MONITOR_PY="monitor_streams.py"
+FLAG="layout_updated.flag"
+CHOOSER="layout_chooser.py"
+MONITOR="monitor_streams.py"
 
 JQ="/usr/bin/jq"
 MPV="/usr/bin/mpv"
@@ -15,73 +17,68 @@ XDOTOOL="/usr/bin/xdotool"
 export DISPLAY="${DISPLAY:-:0}"
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 
+# ── Logging ───────────────────────────────────────────────────────────────────
 exec > >(tee -a "$LOG") 2>&1
 echo "[INFO] Starting viewport.sh at $(date)"
 
-echo "[INFO] Killing existing mpv streams (if any)…"
+# ── Kill any leftover mpv streams ─────────────────────────────────────────────
+echo "[INFO] Killing existing mpv streams..."
 pkill -f "$MPV --no-border" || true
 sleep 1
 
+# ── Verify required tools ─────────────────────────────────────────────────────
 for TOOL in "$JQ" "$MPV" "$PYTHON" "$XDOTOOL"; do
   [[ -x $TOOL ]] || { echo "[ERROR] Missing tool: $TOOL"; exit 1; }
 done
 
-# ── Only “valid” if every tile has a non-empty URL ─────────────────────────
-check_full_config(){
-  $JQ -e '
-    .grid and
-    (.tiles|length>0) and
-    (.tiles|all(.url != null and .url != ""))
-  ' "$CONFIG" &>/dev/null
-}
+# ── Always launch the chooser (blocks here until you Save or timeout) ───────
+rm -f "$FLAG" 2>/dev/null || true
+echo "[INFO] Launching layout chooser…"
+"$PYTHON" "$CHOOSER"
 
-# ── If missing or invalid → **block** in the chooser until you hit Save ────
-if [[ ! -f $CONFIG ]] || ! check_full_config; then
-  echo "[WARN] No valid config – launching layout chooser"
-  rm -f layout_updated.flag 2>/dev/null || true
-  "$PYTHON" "$CHOOSER_PY"
-fi
-
-# ── Bail if they somehow still didn’t write URLs ───────────────────────────
-if ! check_full_config; then
-  echo "[ERROR] viewport_config.json still invalid; aborting"
+# ── Validate that chooser wrote a full grid+tiles config ────────────────────
+if ! $JQ -e '.grid and .tiles and (.tiles|length>0)' "$CONFIG" &>/dev/null; then
+  echo "[ERROR] viewport_config.json invalid or missing—aborting"
   exit 1
 fi
 
-# ── Detect screen size ─────────────────────────────────────────────────────
-if IFS=' ' read -r W H <<< "$($XDOTOOL getdisplaygeometry)"; then
-  echo "[INFO] Detected geometry: ${W}×${H}"
+# ── Detect display resolution ────────────────────────────────────────────────
+if IFS=' ' read -r WIDTH HEIGHT <<< "$($XDOTOOL getdisplaygeometry)"; then
+  echo "[INFO] Detected display geometry: ${WIDTH}×${HEIGHT}"
 else
-  W=3840; H=2160
-  echo "[WARN] Using fallback ${W}×${H}"
+  WIDTH=3840; HEIGHT=2160
+  echo "[WARN] Could not detect geometry—using fallback ${WIDTH}×${HEIGHT}"
 fi
 
+# ── Compute per-tile dimensions ──────────────────────────────────────────────
 ROWS=$($JQ -r '.grid[0] // 1' "$CONFIG")
 COLS=$($JQ -r '.grid[1] // 1' "$CONFIG")
 (( ROWS<1 )) && ROWS=1
 (( COLS<1 )) && COLS=1
-TW=$(( W / COLS ))
-TH=$(( H / ROWS ))
-echo "[DEBUG] Grid: ${ROWS}×${COLS}, tile: ${TW}×${TH}"
+WIN_W=$(( WIDTH  / COLS ))
+WIN_H=$(( HEIGHT / ROWS ))
+echo "[DEBUG] Grid: ${ROWS}×${COLS}, tile size: ${WIN_W}×${WIN_H}"
 
+# ── Hardware decode hint for Pi 5 ────────────────────────────────────────────
 HWDEC=""
-grep -qi "raspberry pi 5" /proc/device-tree/model && HWDEC="--hwdec=auto"
+grep -qi "raspberry pi 5" /proc/device-tree/model &>/dev/null && HWDEC="--hwdec=auto"
 
-# ── Launch each tile ───────────────────────────────────────────────────────
+# ── Launch each tile in background ──────────────────────────────────────────
 $JQ -c '.tiles[]' "$CONFIG" | while read -r tile; do
   read R C w h name url <<<"$(
     echo "$tile" | $JQ -r '[.row,.col,.w,.h,.name,.url]|@tsv'
   )"
-  [[ $url ]] || continue
+  [[ $url && $url != "null" ]] || continue
 
-  # sanitize secure→plain RTSP
+  # convert RTSPS port
   url=$(sed -E 's|rtsps://([^:/]+):7441|rtsp://\1:7447|' <<<"$url")
 
-  X=$(( C * TW )); Y=$(( R * TH ))
-  WW=$(( w * TW )); HH=$(( h * TH ))
+  X=$(( C * WIN_W )) Y=$(( R * WIN_H ))
+  TW=$(( w * WIN_W ))  TH=$(( h * WIN_H ))
 
-  echo "[INFO] Launching \"$name\" @ ${WW}×${HH}+${X}+${Y}"
-  "$MPV" --no-border --geometry=${WW}x${HH}+${X}+${Y} \
+  echo "[INFO] Launching \"$name\" @ ${TW}×${TH}+${X}+${Y}"
+  "$MPV" \
+    --no-border --geometry=${TW}x${TH}+${X}+${Y} \
     --profile=low-latency --untimed --no-correct-pts \
     --video-sync=desync --framedrop=vo --rtsp-transport=tcp \
     --loop=inf --no-resume-playback --no-cache \
@@ -90,12 +87,12 @@ $JQ -c '.tiles[]' "$CONFIG" | while read -r tile; do
     --no-audio --keep-open=yes "$url" &
 done
 
-# ── And fire up your health monitor ────────────────────────────────────────
-if [[ -x $MONITOR_PY ]]; then
+# ── Start health monitor if present ──────────────────────────────────────────
+if [[ -x $MONITOR ]]; then
   echo "[INFO] Starting health monitor"
-  "$PYTHON" "$MONITOR_PY" &
+  "$PYTHON" "$MONITOR" &
 else
-  echo "[WARN] Health monitor missing – skipping"
+  echo "[WARN] monitor_streams.py missing—skipping health monitor"
 fi
 
 wait
