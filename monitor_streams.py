@@ -19,6 +19,7 @@ MPV_BIN = "/usr/bin/mpv"
 CHECK_INTERVAL = 5       # seconds between health checks
 RESTART_COOLDOWN = 5     # seconds between restarts per tile
 
+# Track last restart timestamps per tile
 title_last_restart = {}
 
 # --- Section: Logging Utility ---
@@ -39,7 +40,6 @@ def get_screen_resolution():
     except Exception as e:
         log(f"xdpyinfo error: {e}")
     return 1920, 1080  # fallback
-
 
 def get_grid_dimensions():
     try:
