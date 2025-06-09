@@ -1,3 +1,7 @@
+# layout_chooser.py
+# Description: GUI for selecting and saving camera grid layouts for viewport.sh
+# Updated to use flag signaling instead of directly relaunching viewport.sh
+
 #!/usr/bin/env python3
 import os
 import time
@@ -6,9 +10,11 @@ import subprocess
 import tkinter as tk
 from tkinter import ttk, messagebox
 
+# --- Section: File paths and constants ---
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 CAMERA_FILE = os.path.join(SCRIPT_DIR, "camera_urls.json")
 CONFIG_FILE = os.path.join(SCRIPT_DIR, "viewport_config.json")
+FLAG_FILE = os.path.join(SCRIPT_DIR, "layout_updated.flag")
 
 CUSTOM_LAYOUTS = {
     "2x1": {
@@ -49,9 +55,10 @@ CUSTOM_LAYOUTS = {
     }
 }
 
+# --- Section: Camera loading and metadata injection ---
 def fetch_camera_list():
     try:
-        result = subprocess.run(
+        subprocess.run(
             ["python3", "get_streams.py"],
             cwd=SCRIPT_DIR,
             stdout=subprocess.PIPE,
@@ -59,7 +66,6 @@ def fetch_camera_list():
             check=True,
             text=True
         )
-        print(result.stdout)
     except subprocess.CalledProcessError as e:
         print(f"[WARN] get_streams.py failed:\n{e.output}")
 
@@ -84,25 +90,24 @@ def inject_metadata_into_config():
     except Exception as e:
         print(f"[ERROR] Failed to update {CONFIG_FILE} with metadata: {e}")
 
-# Fetch camera list
+# --- Section: Load and sort camera names ---
 time.sleep(2)
 fetch_camera_list()
 
-# Load cameras
 camera_map = {}
 camera_names = []
+preferred = []
 
 try:
     with open(CAMERA_FILE, "r") as f:
         cameras = json.load(f)
-    if not isinstance(cameras, list) or not cameras:
-        raise ValueError("Camera list is empty.")
     camera_names = sorted([cam["name"] for cam in cameras])
     preferred = [name for name in camera_names if "(1920x1080)" in name or "(1280x720)" in name]
     camera_map = {cam["name"]: cam["url"] for cam in cameras if cam.get("url")}
 except Exception as e:
     messagebox.showwarning("Camera Load Warning", f"Unable to load cameras:\n{e}")
 
+# --- Section: Main GUI for layout selection ---
 class LayoutSelector(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -150,17 +155,15 @@ class LayoutSelector(tk.Tk):
 
     def use_last_layout(self):
         self.withdraw()
-        subprocess.Popen(
-            ["./viewport.sh"],
-            cwd=SCRIPT_DIR,
-            stdout=open(os.path.join(SCRIPT_DIR, "viewport.log"), "a"),
-            stderr=subprocess.STDOUT
-        )
+        with open(FLAG_FILE, "w") as f:
+            f.write("updated")
+        print("[INFO] layout_updated.flag written from Use Last Layout")
 
     def prompt_for_default(self):
         if self.winfo_exists() and self.has_valid_config:
             self.use_last_layout()
 
+# --- Section: Editor for N x N grid layout ---
 class LayoutEditor(tk.Tk):
     def __init__(self, size):
         super().__init__()
@@ -184,39 +187,28 @@ class LayoutEditor(tk.Tk):
 
                 cb = ttk.Combobox(cell, values=camera_names, textvariable=var, width=30)
                 cb.pack(side=tk.LEFT)
+                cb.bind("<<ComboboxSelected>>", lambda e, v=var, cb=cb: v.set(cb.get()))
 
-                def on_select(event, var=var, cb=cb):
-                    var.set(cb.get())
-                cb.bind("<<ComboboxSelected>>", on_select)
+                tk.Button(cell, text="🔍", command=lambda v=var: self.preview(v), width=2).pack(side=tk.LEFT)
 
-                def preview(var=var):
-                    name = var.get()
-                    url = camera_map.get(name)
-                    if url:
-                        subprocess.Popen(["mpv", "--no-border", "--profile=low-latency", "--untimed", "--rtsp-transport=tcp", url])
-                    else:
-                        messagebox.showwarning("Preview Error", f"No valid stream for {name}")
-                tk.Button(cell, text="🔍", command=preview, width=2).pack(side=tk.LEFT)
+        tk.Button(self, text="Save Layout", command=self.save_config).pack(pady=10)
 
-        tk.Button(self, text="Save Layout and Launch Viewer", command=self.save_config).pack(pady=10)
+    def preview(self, var):
+        name = var.get()
+        url = camera_map.get(name)
+        if url:
+            subprocess.Popen(["mpv", "--no-border", "--profile=low-latency", "--untimed", "--rtsp-transport=tcp", url])
+        else:
+            messagebox.showwarning("Preview Error", f"No valid stream for {name}")
 
     def save_config(self):
-        config = {
-            "grid": [self.size, self.size],
-            "tiles": []
-        }
-
+        config = {"grid": [self.size, self.size], "tiles": []}
         for r in range(self.size):
             for c in range(self.size):
                 name = self.assignments[r][c].get().strip()
                 url = camera_map.get(name)
                 if name and url:
-                    config["tiles"].append({
-                        "row": r,
-                        "col": c,
-                        "name": name,
-                        "url": url
-                    })
+                    config["tiles"].append({"row": r, "col": c, "name": name, "url": url})
 
         if not config["tiles"]:
             messagebox.showerror("Error", "You must assign at least one camera.")
@@ -227,22 +219,18 @@ class LayoutEditor(tk.Tk):
                 json.dump(config, f, indent=2)
                 f.flush()
                 os.fsync(f.fileno())
+            inject_metadata_into_config()
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save config:\n{e}")
             return
 
-        inject_metadata_into_config()
-
-        messagebox.showinfo("Saved", "Layout saved. Launching viewer...")
+        with open(FLAG_FILE, "w") as f:
+            f.write("updated")
+        print("[INFO] layout_updated.flag written from Grid Editor")
+        messagebox.showinfo("Saved", "Layout saved.")
         self.destroy()
 
-        subprocess.Popen(
-            ["./viewport.sh"],
-            cwd=SCRIPT_DIR,
-            stdout=open(os.path.join(SCRIPT_DIR, "viewport.log"), "a"),
-            stderr=subprocess.STDOUT
-        )
-
+# --- Section: Editor for predefined custom layouts ---
 class CustomLayoutEditor(tk.Tk):
     def __init__(self, layout_name):
         super().__init__()
@@ -265,37 +253,27 @@ class CustomLayoutEditor(tk.Tk):
 
             cb = ttk.Combobox(cell, values=camera_names, textvariable=var, width=30)
             cb.pack(side=tk.LEFT)
+            cb.bind("<<ComboboxSelected>>", lambda e, v=var, cb=cb: v.set(cb.get()))
 
-            def on_select(event, var=var, cb=cb):
-                var.set(cb.get())
-            cb.bind("<<ComboboxSelected>>", on_select)
+            tk.Button(cell, text="🔍", command=lambda v=var: self.preview(v), width=2).pack(side=tk.LEFT)
 
-            def preview(var=var):
-                name = var.get()
-                url = camera_map.get(name)
-                if url:
-                    subprocess.Popen(["mpv", "--no-border", "--profile=low-latency", "--untimed", "--rtsp-transport=tcp", url])
-                else:
-                    messagebox.showwarning("Preview Error", f"No valid stream for {name}")
-            tk.Button(cell, text="🔍", command=preview, width=2).pack(side=tk.LEFT)
+        tk.Button(self, text="Save Layout", command=self.save_config).pack(pady=10)
 
-        tk.Button(self, text="Save Layout and Launch Viewer", command=self.save_config).pack(pady=10)
+    def preview(self, var):
+        name = var.get()
+        url = camera_map.get(name)
+        if url:
+            subprocess.Popen(["mpv", "--no-border", "--profile=low-latency", "--untimed", "--rtsp-transport=tcp", url])
+        else:
+            messagebox.showwarning("Preview Error", f"No valid stream for {name}")
 
     def save_config(self):
-        config = {
-            "grid": self.grid_size,
-            "tiles": []
-        }
-
+        config = {"grid": self.grid_size, "tiles": []}
         for tile, var in zip(self.tiles, self.assignments):
             name = var.get().strip()
             url = camera_map.get(name)
             if name and url:
-                config["tiles"].append({
-                    **tile,
-                    "name": name,
-                    "url": url
-                })
+                config["tiles"].append({**tile, "name": name, "url": url})
 
         if not config["tiles"]:
             messagebox.showerror("Error", "You must assign at least one camera.")
@@ -306,21 +284,17 @@ class CustomLayoutEditor(tk.Tk):
                 json.dump(config, f, indent=2)
                 f.flush()
                 os.fsync(f.fileno())
+            inject_metadata_into_config()
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save config:\n{e}")
             return
 
-        inject_metadata_into_config()
-
-        messagebox.showinfo("Saved", "Layout saved. Launching viewer...")
+        with open(FLAG_FILE, "w") as f:
+            f.write("updated")
+        print("[INFO] layout_updated.flag written from Custom Layout Editor")
+        messagebox.showinfo("Saved", "Layout saved.")
         self.destroy()
 
-        subprocess.Popen(
-            ["./viewport.sh"],
-            cwd=SCRIPT_DIR,
-            stdout=open(os.path.join(SCRIPT_DIR, "viewport.log"), "a"),
-            stderr=subprocess.STDOUT
-        )
-
+# --- Section: Script Entry Point ---
 if __name__ == "__main__":
     LayoutSelector().mainloop()
