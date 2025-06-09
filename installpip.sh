@@ -5,81 +5,87 @@ echo "== UniFi RTSP Viewport (pip/venv) Installer =="
 
 cd "$(dirname "$0")"
 
-# === Required system commands ===
-REQUIRED_CMDS=(python3 pip3 jq mpv xrandr xdpyinfo)
+# ─── Check required system commands ──────────────────────────────────────────
+REQUIRED_CMDS=(python3 pip3 jq mpv xrandr xdpyinfo xdotool)
 
 for cmd in "${REQUIRED_CMDS[@]}"; do
-    if ! command -v "$cmd" &>/dev/null; then
-        echo "[ERROR] '$cmd' is not installed. Please install it before continuing."
-        exit 1
-    fi
+  if ! command -v "$cmd" &>/dev/null; then
+    echo "[ERROR] '$cmd' is not installed. Please install it before continuing."
+    exit 1
+  fi
 done
 
-# === Ensure required system package for psutil ===
-if ! dpkg -s python3-psutil &>/dev/null; then
-    echo "[INFO] Installing python3-psutil system package..."
-    sudo apt install -y python3-psutil
-fi
+# ─── Ensure OS packages for psutil & tkinter ────────────────────────────────
+PKGS=(python3-psutil python3-tk)
+for pkg in "${PKGS[@]}"; do
+  if ! dpkg -s "$pkg" &>/dev/null; then
+    echo "[INFO] Installing system package: $pkg"
+    sudo apt update
+    sudo apt install -y "$pkg"
+  fi
+done
 
-# === Create virtual environment ===
+# ─── Create & activate virtualenv ───────────────────────────────────────────
 if [ ! -d venv ]; then
-    echo "[INFO] Creating Python virtual environment..."
-    python3 -m venv venv
+  echo "[INFO] Creating Python virtual environment..."
+  python3 -m venv venv
 fi
 
-# === Activate virtual environment ===
 echo "[INFO] Activating virtual environment..."
+# shellcheck disable=SC1091
 source venv/bin/activate
 
-# === Create requirements.txt if not present ===
+# ─── Generate requirements.txt if missing ───────────────────────────────────
 if [ ! -f requirements.txt ]; then
-    echo "[INFO] Creating default requirements.txt..."
-    cat <<EOF > requirements.txt
+  echo "[INFO] Writing default requirements.txt..."
+  cat > requirements.txt <<EOF
 python-dotenv
 requests
 psutil
 EOF
 fi
 
-# === Install Python dependencies ===
-echo "[INFO] Installing Python packages into venv..."
+# ─── Install Python dependencies ────────────────────────────────────────────
+echo "[INFO] Upgrading pip and installing Python packages..."
 pip install --upgrade pip
 pip install -r requirements.txt
 
-# === Prompt user for .env variables ===
+# ─── Prompt for .env variables ──────────────────────────────────────────────
 if [ ! -f .env ]; then
-    echo "[INFO] Let's configure your UniFi Protect connection:"
-    read -rp "Enter UFP_HOST (e.g. https://192.168.5.10): " UFP_HOST
-    read -rp "Enter UFP_USERNAME: " UFP_USERNAME
-    read -rsp "Enter UFP_PASSWORD: " UFP_PASSWORD
-    echo
-
-    cat <<EOF > .env
+  echo
+  echo "[INFO] Let's configure your UniFi Protect connection:"
+  read -rp "  UFP_HOST     (e.g. https://192.168.5.10): " UFP_HOST
+  read -rp "  UFP_USERNAME : " UFP_USERNAME
+  read -rsp "  UFP_PASSWORD : " UFP_PASSWORD
+  echo
+  cat > .env <<EOF
 UFP_HOST=$UFP_HOST
 UFP_USERNAME=$UFP_USERNAME
 UFP_PASSWORD=$UFP_PASSWORD
 EOF
-
-    echo "[INFO] .env file created with your credentials."
+  echo "[INFO] .env file created."
 else
-    echo "[INFO] .env file already exists, skipping prompt."
+  echo "[INFO] .env already exists — skipping."
 fi
 
-# === Add .env to .gitignore if needed ===
-if [ ! -f .gitignore ]; then
-    touch .gitignore
-fi
-
+# ─── Add .env to .gitignore if needed ───────────────────────────────────────
+if [ ! -f .gitignore ]; then touch .gitignore; fi
 if ! grep -q "^.env$" .gitignore; then
-    echo ".env" >> .gitignore
-    echo "[INFO] .env added to .gitignore"
+  echo ".env" >> .gitignore
+  echo "[INFO] .env added to .gitignore"
 fi
 
-# === Make scripts executable ===
-chmod +x get_streams.py layout_chooser.py viewport.sh
+# ─── Make all entry‐point scripts executable ────────────────────────────────
+chmod +x get_streams.py \
+         layout_chooser.py \
+         viewport.sh \
+         monitor_streams.py \
+         kill_stale_streams.py \
+         overlay_box.py
 
-echo "[✅ SUCCESS] Setup complete using virtualenv."
 echo
-echo "👉 To begin:"
-echo "  source venv/bin/activate"
-echo "  ./layout_chooser.py"
+echo "[✅ SUCCESS] Virtualenv setup complete!"
+echo
+echo "👉 To get started:"
+echo "   source venv/bin/activate"
+echo "   ./layout_chooser.py"
