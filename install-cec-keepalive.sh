@@ -18,7 +18,7 @@ OFF_HOUR="${OFF_TIME%:*}"
 OFF_MIN="${OFF_TIME#*:}"
 
 # === Variables ===
-USER_HOME="/home/pi"
+USER_HOME="/home/viewport"
 LOG_FILE="$USER_HOME/cec_keepalive.log"
 KEEPALIVE_SCRIPT="$USER_HOME/keep_display_awake.py"
 CONTROL_SCRIPT="$USER_HOME/cec_control.py"
@@ -66,7 +66,7 @@ if __name__ == "__main__":
 EOF
 
 sudo chmod +x "$KEEPALIVE_SCRIPT"
-sudo chown pi:pi "$KEEPALIVE_SCRIPT"
+sudo chown viewport:viewport "$KEEPALIVE_SCRIPT"
 
 # === 3. Create cec_control.py ===
 echo "📝 Creating $CONTROL_SCRIPT..."
@@ -96,7 +96,7 @@ if __name__ == "__main__":
 EOF
 
 sudo chmod +x "$CONTROL_SCRIPT"
-sudo chown pi:pi "$CONTROL_SCRIPT"
+sudo chown viewport:viewport "$CONTROL_SCRIPT"
 
 # === 4. Create systemd service ===
 echo "🔧 Creating systemd service at $SERVICE_FILE..."
@@ -108,7 +108,7 @@ After=network.target
 [Service]
 ExecStart=$PYTHON_BIN $KEEPALIVE_SCRIPT
 Restart=always
-User=pi
+User=viewport
 
 [Install]
 WantedBy=default.target
