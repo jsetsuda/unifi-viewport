@@ -4,17 +4,25 @@ import subprocess
 import time
 import logging
 
-# Config
 PING_INTERVAL = 300  # seconds
 
 logging.basicConfig(filename='/home/pi/cec_keepalive.log', level=logging.INFO)
 
+def is_display_on():
+    result = subprocess.run(
+        ['cec-client', '-s', '-d', '1'],
+        input=b'pow 0\n',
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+    )
+    return b'on' in result.stdout.lower()
+
 def send_cec_ping():
-    try:
+    if is_display_on():
         subprocess.run(['cec-client', '-s', '-d', '1'], input=b'on 0\n', check=True)
-        logging.info("Sent CEC ping at %s", time.ctime())
-    except subprocess.CalledProcessError as e:
-        logging.error("Failed to send CEC ping: %s", str(e))
+        logging.info("Display ON: sent keepalive ping at %s", time.ctime())
+    else:
+        logging.info("Display is OFF — skipping ping at %s", time.ctime())
 
 if __name__ == "__main__":
     while True:
