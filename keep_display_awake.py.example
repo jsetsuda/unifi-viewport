@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+
+import subprocess
+import time
+import logging
+
+# Config
+PING_INTERVAL = 300  # seconds
+
+logging.basicConfig(filename='/home/pi/cec_keepalive.log', level=logging.INFO)
+
+def send_cec_ping():
+    try:
+        subprocess.run(['cec-client', '-s', '-d', '1'], input=b'on 0\n', check=True)
+        logging.info("Sent CEC ping at %s", time.ctime())
+    except subprocess.CalledProcessError as e:
+        logging.error("Failed to send CEC ping: %s", str(e))
+
+if __name__ == "__main__":
+    while True:
+        send_cec_ping()
+        time.sleep(PING_INTERVAL)
