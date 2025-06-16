@@ -12,10 +12,10 @@ usage() {
 Usage: $0 [OPTIONS]
 
 Options:
-  --pip       Set up Python virtualenv, deps, and .env
+  --pip       Set up Python virtualenv, deps, .env, and fetch camera list
   --gui       Install GUI/display environment and prompt for .env
   --cec       Install HDMI-CEC keepalive
-  --all       Run pip, gui, and cec steps
+  --all       Run pip + gui + cec steps
   -h, --help  Show this message
 EOF
   exit 1
@@ -89,24 +89,24 @@ EOF
 }
 
 # ------------------------------------------------------------------------------
-# Section: Python / pip / venv setup
+# Section: Python / pip / venv setup (and initial camera fetch)
 # ------------------------------------------------------------------------------
 if $DO_PIP; then
   echo
   echo "[STEP] Python virtualenv & dependencies →"
 
-  # Create venv if needed
+  # 1) Create venv if needed
   if [[ ! -d venv ]]; then
     echo "  • Creating venv…"
     python3 -m venv venv
   fi
 
-  # Activate venv
+  # 2) Activate venv
   echo "  • Activating venv…"
   # shellcheck disable=SC1091
   source venv/bin/activate
 
-  # Ensure requirements.txt
+  # 3) Ensure requirements.txt
   if [[ ! -f requirements.txt ]]; then
     cat > requirements.txt <<EOF
 python-dotenv>=1.0.0
@@ -118,25 +118,29 @@ EOF
     echo "  • Wrote default requirements.txt"
   fi
 
-  # Install Python packages
+  # 4) Install Python packages
   echo "  • Upgrading pip & installing requirements…"
   pip install --upgrade pip
   pip install -r requirements.txt
 
-  # Prompt for .env
+  # 5) Prompt for .env
   prompt_env
 
-  # Add .env to .gitignore
+  # 6) Add .env to .gitignore
   grep -qxF '.env' .gitignore 2>/dev/null || {
     echo ".env" >> .gitignore
     echo "  • Added .env to .gitignore"
   }
 
-  # Mark entry scripts executable
+  # 7) Mark entry scripts executable
   chmod +x get_streams.py layout_chooser.py viewport.sh monitor_streams.py
   echo "  • Marked entry-point scripts executable"
 
-  # Deactivate venv
+  # 8) Fetch initial camera list
+  echo "  • Fetching initial camera list…"
+  python3 get_streams.py && echo "  → camera_urls.json created" || echo "  ! get_streams.py failed"
+
+  # 9) Deactivate venv
   deactivate
 fi
 
@@ -233,7 +237,7 @@ EOF
 echo "Reloading systemd daemon & enabling service…"
 sudo systemctl daemon-reload
 sudo systemctl enable unifi-viewport.service
-sudo systemctl start unifi-viewport.service
+sudo systemctl start  unifi-viewport.service
 
 # ------------------------------------------------------------------------------
 echo
