@@ -45,8 +45,8 @@ sudo raspi-config   # Advanced Options → Expand Filesystem
 3. **Install with the unified installer**
 
    ```bash
-   chmod +x installmain.sh
-   sudo ./installmain.sh --all
+   chmod +x install.sh
+   sudo ./install.sh --all
    ```
 4. **Reboot or start the service**
 
