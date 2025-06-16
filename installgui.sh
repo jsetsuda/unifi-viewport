@@ -108,6 +108,45 @@ chmod +x get_streams.py \
          kill_stale_streams.py \
          overlay_box.py
 
+# ── Install systemd service for unifi-viewport ───────────────────────────────
+SERVICE_USER=viewport
+SERVICE_GROUP=viewport
+INSTALL_DIR="$(pwd)"
+SERVICE_FILE=/etc/systemd/system/unifi-viewport.service
+
+echo
+echo "[INFO] Installing systemd service → $SERVICE_FILE"
+
+sudo tee "$SERVICE_FILE" > /dev/null <<EOF
+[Unit]
+Description=UniFi Protect Viewport
+After=graphical.target network.target
+Wants=graphical.target
+
+[Service]
+User=${SERVICE_USER}
+Group=${SERVICE_GROUP}
+WorkingDirectory=${INSTALL_DIR}
+Environment=DISPLAY=:0
+Environment=XDG_RUNTIME_DIR=/run/user/$(id -u ${SERVICE_USER})
+
+ExecStart=${INSTALL_DIR}/viewport.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical.target
+EOF
+
+echo "[INFO] Reloading systemd daemon and enabling service..."
+sudo systemctl daemon-reload
+sudo systemctl enable unifi-viewport.service
+sudo systemctl start  unifi-viewport.service
+
 echo
 echo "[✅ COMPLETE] All-in-one GUI install finished!"
-echo "➡️  Reboot now: the Pi will auto-login as 'viewport' and launch the layout chooser."
+echo "  • Your Pi will auto-login as 'viewport' and launch the layout chooser."
+echo "  • The viewport service will start at boot and restart on failure."
+echo
+echo "Manage the service with:"
+echo "  sudo systemctl [start|stop|restart|status] unifi-viewport.service"
