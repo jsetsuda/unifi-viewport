@@ -31,23 +31,30 @@ sudo raspi-config   # Advanced Options → Expand Filesystem
 
 ## Quickstart
 
-1. **Clone the repository**
+1. **Update your system**
 
    ```bash
-   git clone https://github.com/jsetsuda/unifi-viewport.git
-   cd unifi-viewport
+   sudo apt update && sudo apt upgrade -y && sudo apt install -y git
    ```
-2. **Install with the unified installer**
+2. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/jsetsuda/unifi-viewport.git ~/unifi-viewport
+   cd ~/unifi-viewport
+   ```
+3. **Install with the unified installer**
 
    ```bash
    chmod +x installmain.sh
    sudo ./installmain.sh --all
    ```
-3. **Reboot or start the service**
+4. **Reboot or start the service**
 
    ```bash
    sudo systemctl start unifi-viewport.service
    ```
+
+> **Note:** If you installed a lightweight OS without a GUI, after install run `sudo raspi-config`, set **Boot Options → Desktop / CLI**. Then **Boot Options → Desktop Autologin → Yes for CMD and GUI**.
 
 ---
 
