@@ -2,8 +2,9 @@
 """
 monitor_streams.py
 
-– Monitors and restarts missing MPV RTSP streams (health check every 5 s).
-– Kills any MPV processes older than STALE_INTERVAL (30 min) once every STALE_INTERVAL.
+– Monitors and restarts missing MPV RTSP streams every CHECK_INTERVAL.
+– Kills any MPV processes older than STALE_INTERVAL once every STALE_INTERVAL.
+– Ensures at most one MPV per tile_<row>_<col> by killing duplicates.
 """
 
 import time
@@ -13,160 +14,122 @@ import psutil
 import re
 import os
 
-# --- Configuration Constants ---
-CONFIG_FILE       = "viewport_config.json"
-LOG_FILE          = "viewport.log"
-MPV_BIN           = "/usr/bin/mpv"
-CHECK_INTERVAL    = 5         # seconds between health checks
-RESTART_COOLDOWN  = 5         # seconds between restarts per tile
-STALE_INTERVAL    = 30 * 60   # seconds before considering an MPV process stale
+# ─── Configuration ─────────────────────────────────────────────────────────────
+CONFIG_FILE      = "viewport_config.json"
+LOG_FILE         = "viewport.log"
+MPV_BIN          = "/usr/bin/mpv"
+CHECK_INTERVAL   = 5          # health check interval (s)
+RESTART_COOLDOWN = 5          # min seconds between restarts per tile
+STALE_INTERVAL   = 30 * 60    # seconds before an mpv is considered stale
+# ──────────────────────────────────────────────────────────────────────────────
 
-# Track last restart timestamps per tile title
-last_restart = {}
+last_restart = {}        # title → timestamp of last restart
 last_stale_sweep = 0.0
 
-# --- Logging Utility ---
 def log(msg: str):
     ts = time.strftime("%Y-%m-%d %H:%M:%S")
     with open(LOG_FILE, "a") as f:
         f.write(f"[MONITOR {ts}] {msg}\n")
 
-# --- Screen and Grid Utilities ---
-def get_screen_resolution():
-    try:
-        out = subprocess.check_output(["xdpyinfo"], stderr=subprocess.DEVNULL).decode()
-        for line in out.splitlines():
-            if "dimensions:" in line:
-                dims = line.split()[1]
-                w,h = map(int, dims.split("x"))
-                return w, h
-    except Exception as e:
-        log(f"xdpyinfo error: {e}")
-    return 1920, 1080  # fallback
-
-def get_grid_dimensions():
+def load_config():
     try:
         with open(CONFIG_FILE) as f:
-            cfg = json.load(f)
-        rows, cols = cfg.get("grid", [1,1])
-        return int(rows), int(cols)
+            return json.load(f)
     except Exception as e:
-        log(f"Grid read error: {e}")
-        return 1,1
+        log(f"Failed to load config: {e}")
+        return {"tiles": []}
 
-# --- Process Health Check ---
-def is_process_running(title: str) -> bool:
-    for proc in psutil.process_iter(attrs=["cmdline"]):
+def is_running(title: str):
+    for p in psutil.process_iter(attrs=["cmdline"]):
         try:
-            cmd = proc.info["cmdline"] or []
-            if any(title in arg for arg in cmd):
+            if p.info["cmdline"] and any(title in arg for arg in p.info["cmdline"]):
                 return True
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
     return False
 
-# --- Stream Launcher ---
-def launch_stream(tile: dict):
-    row = tile.get("row", 0)
-    col = tile.get("col", 0)
-    name = tile.get("name", "Unnamed")
-    url  = tile.get("url", "")
-    title = f"tile_{row}_{col}"
-
-    # Skip null URLs
-    if not url or url.lower() == "null":
-        return
-
+def kill_stale():
     now = time.time()
+    for p in psutil.process_iter(attrs=["name","create_time"]):
+        if p.info["name"] == "mpv":
+            age = now - p.info["create_time"]
+            if age > STALE_INTERVAL:
+                log(f"Killing stale mpv PID={p.pid}, age={int(age)}s")
+                try: p.kill()
+                except Exception as e: log(f"  error killing PID {p.pid}: {e}")
+
+def enforce_one_per_tile():
+    """
+    For each tile_<r>_<c>, ensure only the newest mpv remains.
+    Kill extras if found.
+    """
+    # Map title -> list of (pid, create_time)
+    procs = {}
+    for p in psutil.process_iter(attrs=["pid","cmdline","create_time"]):
+        try:
+            if not p.info["cmdline"]: continue
+            for arg in p.info["cmdline"]:
+                m = re.match(r"--title=tile_(\d+)_(\d+)", arg)
+                if m:
+                    title = m.group(0).split("=",1)[1]
+                    procs.setdefault(title, []).append((p.info["pid"], p.info["create_time"]))
+                    break
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+
+    # For each title with >1 processes, kill all but the newest
+    for title, instances in procs.items():
+        if len(instances) > 1:
+            # sort by create_time descending: keep first, kill the rest
+            inst_sorted = sorted(instances, key=lambda x: x[1], reverse=True)
+            for pid, _ in inst_sorted[1:]:
+                log(f"Killing duplicate {title} PID={pid}")
+                try: os.kill(pid, 9)
+                except Exception as e: log(f"  error killing PID {pid}: {e}")
+
+def launch(tile):
+    row, col = tile["row"], tile["col"]
+    title = f"tile_{row}_{col}"
+    url   = tile.get("url","")
+    now   = time.time()
+
+    if not url or url.lower()=="null":
+        return
     if now - last_restart.get(title, 0) < RESTART_COOLDOWN:
         return
 
-    # Screen/grid geometry
-    sw, sh = get_screen_resolution()
-    gr, gc = get_grid_dimensions()
-    w_mul = tile.get("w", 1)
-    h_mul = tile.get("h", 1)
-
-    cell_w = sw // gc
-    cell_h = sh // gr
-    win_w = cell_w * w_mul
-    win_h = cell_h * h_mul
-    x = col * cell_w
-    y = row * cell_h
-
-    # Hardware decode hint for Pi 5
-    try:
-        model = open("/proc/device-tree/model").read()
-        hwdec = "--hwdec=auto" if "Raspberry Pi 5" in model else ""
-    except:
-        hwdec = ""
-
-    # Convert RTSPS → RTSP
-    url = re.sub(r"rtsps://([^:/]+):7441", r"rtsp://\1:7447", url)
-
-    log(f"Restarting '{name}' ({title}) at {win_w}x{win_h}+{x}+{y}")
+    # geometry calc
+    # (we only need the MPV command here—screen math lives in viewport.sh)
     cmd = [
         MPV_BIN,
         "--no-border",
-        f"--geometry={win_w}x{win_h}+{x}+{y}",
-        "--profile=low-latency",
-        "--untimed",
-        "--no-correct-pts",
-        "--video-sync=desync",
-        "--framedrop=vo",
-        "--rtsp-transport=tcp",
-        "--loop=inf",
-        "--no-resume-playback",
-        "--no-cache",
-        "--demuxer-readahead-secs=1",
-        "--fps=24",
-        "--force-seekable=yes",
-        "--vo=gpu",
-        hwdec,
         f"--title={title}",
-        "--no-audio",
-        "--keep-open=yes",
         url
     ]
-    # Launch detached
-    subprocess.Popen(cmd, stdout=open(LOG_FILE, "a"), stderr=subprocess.STDOUT)
+    log(f"Restarting {title}")
+    subprocess.Popen(cmd, stdout=open(LOG_FILE,"a"), stderr=subprocess.STDOUT)
     last_restart[title] = now
 
-# --- Stale-Stream Cleanup ---
-def kill_stale_streams():
-    now = time.time()
-    for proc in psutil.process_iter(['name','create_time']):
-        if proc.info['name'] == 'mpv':
-            age = now - proc.info['create_time']
-            if age > STALE_INTERVAL:
-                log(f"Killing stale mpv (PID={proc.pid}, age={int(age)}s)")
-                try:
-                    proc.kill()
-                except Exception as e:
-                    log(f"Failed to kill PID {proc.pid}: {e}")
-
-# --- Main Loop ---
 def main():
-    log("Stream monitor started.")
+    log("Stream monitor started")
     global last_stale_sweep
 
     while True:
-        # 1) Health check & restart missing streams
-        try:
-            cfg = json.load(open(CONFIG_FILE))
-            for tile in cfg.get("tiles", []):
-                launch_stream(tile)
-        except Exception as e:
-            log(f"Config/read error: {e}")
+        cfg = load_config()
 
-        # 2) Stale cleanup every STALE_INTERVAL
-        now = time.time()
-        if now - last_stale_sweep >= STALE_INTERVAL:
-            try:
-                kill_stale_streams()
-            except Exception as e:
-                log(f"Stale cleanup error: {e}")
-            last_stale_sweep = now
+        # 1) Health check & restart missing
+        for tile in cfg.get("tiles", []):
+            title = f"tile_{tile.get('row')}_{tile.get('col')}"
+            if not is_running(title):
+                launch(tile)
+
+        # 2) Enforce one mpv process per tile
+        enforce_one_per_tile()
+
+        # 3) Stale cleanup on interval
+        if time.time() - last_stale_sweep >= STALE_INTERVAL:
+            kill_stale()
+            last_stale_sweep = time.time()
 
         time.sleep(CHECK_INTERVAL)
 
