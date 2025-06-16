@@ -54,13 +54,13 @@ sudo raspi-config   # Advanced Options → Expand Filesystem
    sudo systemctl start unifi-viewport.service
    ```
 
-> **Note:** If you installed a lightweight OS without a GUI, after install run `sudo raspi-config`, set **Boot Options → Desktop / CLI**. Then **Boot Options → Desktop Autologin → Yes for CMD and GUI**.
+> **Note:** If you installed a lightweight OS without a GUI, after install run `sudo raspi-config`, set **Boot Options → Desktop / CLI**. Then **Boot Options → Desktop Autologin → Yes for CLI and GUI**.
 
 ---
 
 ## Installation Flags
 
-Run `installmain.sh` with one or more of these flags:
+Run `install.sh` with one or more of these flags:
 
 * `--pip`
 
@@ -131,31 +131,28 @@ After saving a layout, reboots will auto‑launch the last configuration after a
 | `get_streams.py`        | Fetches UniFi Protect RTSP URLs and writes to `camera_urls.json`.                           |
 | `viewport.sh`           | Detects display resolution, launches MPV tiles, and starts the health monitor.              |
 | `monitor_streams.py`    | Periodically checks each stream’s health and restarts stalled streams.                      |
-| `kill_stale_streams.py` | Terminates orphaned MPV processes.                                                          |
-| `installmain.sh`        | Unified installer for pip, GUI, and CEC components with command-line flags.                 |
+| `install.sh`            | Unified installer for pip, GUI, and CEC components with command-line flags.                 |
 
 \----------------------- | ----------------------------------------------------------------------------------------------------------- |
-\| `layout_chooser.py`     | GUI for selecting grid size, assigning cameras to tiles, and saving `viewport_config.json`.                |
-\| `get_streams.py`        | Fetches UniFi Protect RTSP URLs and writes to `camera_urls.json`.                                           |
-\| `viewport.sh`           | Detects display resolution, launches MPV tiles, and starts the health monitor.                              |
-\| `monitor_streams.py`    | Periodically checks each stream’s health and restarts stalled streams.                                      |
-\| `kill_stale_streams.py` | Terminates orphaned MPV processes.                                                                          |
-\| `overlay_box.py`        | Draws status overlays on each tile indicating stream health.                                                |
-\| `installmain.sh`        | Unified installer for pip, GUI, and CEC components with command‑line flags.                                |
+\| `layout_chooser.py`     | GUI for selecting grid size, assigning cameras to tiles, and saving `viewport_config.json`.               |
+\| `get_streams.py`        | Fetches UniFi Protect RTSP URLs and writes to `camera_urls.json`.                                         |
+\| `viewport.sh`           | Detects display resolution, launches MPV tiles, and starts the health monitor.                            |
+\| `monitor_streams.py`    | Periodically checks each stream’s health and restarts stalled streams.                                    |
+\| `install.sh`            | Unified installer for pip, GUI, and CEC components with command‑line flags.                               |
 
 ---
 
 ## How It Works
 
 ```text
-┌───────────────┐   ┌───────────────┐   ┌───────────────┐
+┌───────────────┐   ┌────────────────┐   ┌──────────────────┐
 │ UniFi Protect │──▶│ get_streams.py│──▶│ camera_urls.json│
-└───────────────┘   └───────────────┘   └───────────────┘
+└───────────────┘   └────────────────┘   └──────────────────┘
                              │
                              ▼
-                       ┌───────────────┐   ┌───────────────┐
-                       │ viewport.sh   │──▶│   mpv windows │
-                       └───────────────┘   └───────────────┘
+                       ┌───────────────┐   ┌────────────────┐
+                       │ viewport.sh   │──▶│  mpv windows │
+                       └───────────────┘   └────────────────┘
                              │
                              ▼
                    ┌────────────────────┐
