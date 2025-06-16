@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
 monitor_streams.py
-Description:
-  - Monitors and restarts stale or missing mpv RTSP stream processes based on viewport_config.json.
-  - Supports tile multipliers (w, h) and hardware decoding on Raspberry Pi 5.
+
+– Monitors and restarts missing MPV RTSP streams (health check every 5 s).
+– Kills any MPV processes older than STALE_INTERVAL (30 min) once every STALE_INTERVAL.
 """
 
 import time
@@ -11,32 +11,35 @@ import subprocess
 import json
 import psutil
 import re
+import os
 
-# --- Section: Configuration Constants ---
-CONFIG_FILE = "viewport_config.json"
-LOG_FILE = "viewport.log"
-MPV_BIN = "/usr/bin/mpv"
-CHECK_INTERVAL = 5       # seconds between health checks
-RESTART_COOLDOWN = 5     # seconds between restarts per tile
+# --- Configuration Constants ---
+CONFIG_FILE       = "viewport_config.json"
+LOG_FILE          = "viewport.log"
+MPV_BIN           = "/usr/bin/mpv"
+CHECK_INTERVAL    = 5         # seconds between health checks
+RESTART_COOLDOWN  = 5         # seconds between restarts per tile
+STALE_INTERVAL    = 30 * 60   # seconds before considering an MPV process stale
 
-# Track last restart timestamps per tile
-title_last_restart = {}
+# Track last restart timestamps per tile title
+last_restart = {}
+last_stale_sweep = 0.0
 
-# --- Section: Logging Utility ---
+# --- Logging Utility ---
 def log(msg: str):
-    timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
+    ts = time.strftime("%Y-%m-%d %H:%M:%S")
     with open(LOG_FILE, "a") as f:
-        f.write(f"[MONITOR {timestamp}] {msg}\n")
+        f.write(f"[MONITOR {ts}] {msg}\n")
 
-# --- Section: Screen and Grid Utilities ---
+# --- Screen and Grid Utilities ---
 def get_screen_resolution():
     try:
-        output = subprocess.check_output(["xdpyinfo"], stderr=subprocess.DEVNULL).decode()
-        for line in output.splitlines():
+        out = subprocess.check_output(["xdpyinfo"], stderr=subprocess.DEVNULL).decode()
+        for line in out.splitlines():
             if "dimensions:" in line:
                 dims = line.split()[1]
-                width, height = map(int, dims.split("x"))
-                return width, height
+                w,h = map(int, dims.split("x"))
+                return w, h
     except Exception as e:
         log(f"xdpyinfo error: {e}")
     return 1920, 1080  # fallback
@@ -44,55 +47,68 @@ def get_screen_resolution():
 def get_grid_dimensions():
     try:
         with open(CONFIG_FILE) as f:
-            config = json.load(f)
-        rows, cols = config.get("grid", [1, 1])
+            cfg = json.load(f)
+        rows, cols = cfg.get("grid", [1,1])
         return int(rows), int(cols)
     except Exception as e:
         log(f"Grid read error: {e}")
-        return 1, 1
+        return 1,1
 
-# --- Section: Process Health Check ---
+# --- Process Health Check ---
 def is_process_running(title: str) -> bool:
     for proc in psutil.process_iter(attrs=["cmdline"]):
         try:
-            cmdline = proc.info.get("cmdline", [])
-            if cmdline and any(title in arg for arg in cmdline):
+            cmd = proc.info["cmdline"] or []
+            if any(title in arg for arg in cmd):
                 return True
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
     return False
 
-# --- Section: Stream Launcher ---
-def launch_stream(row: int, col: int, name: str, url: str, tile: dict):
-    screen_w, screen_h = get_screen_resolution()
-    grid_rows, grid_cols = get_grid_dimensions()
-
-    w_mul = tile.get("w", 1)
-    h_mul = tile.get("h", 1)
-    win_w = screen_w // grid_cols
-    win_h = screen_h // grid_rows
-
-    tile_w = win_w * w_mul
-    tile_h = win_h * h_mul
-    x = col * win_w
-    y = row * win_h
+# --- Stream Launcher ---
+def launch_stream(tile: dict):
+    row = tile.get("row", 0)
+    col = tile.get("col", 0)
+    name = tile.get("name", "Unnamed")
+    url  = tile.get("url", "")
     title = f"tile_{row}_{col}"
 
-    # Hardware decode flag for Pi 5
+    # Skip null URLs
+    if not url or url.lower() == "null":
+        return
+
+    now = time.time()
+    if now - last_restart.get(title, 0) < RESTART_COOLDOWN:
+        return
+
+    # Screen/grid geometry
+    sw, sh = get_screen_resolution()
+    gr, gc = get_grid_dimensions()
+    w_mul = tile.get("w", 1)
+    h_mul = tile.get("h", 1)
+
+    cell_w = sw // gc
+    cell_h = sh // gr
+    win_w = cell_w * w_mul
+    win_h = cell_h * h_mul
+    x = col * cell_w
+    y = row * cell_h
+
+    # Hardware decode hint for Pi 5
     try:
         model = open("/proc/device-tree/model").read()
         hwdec = "--hwdec=auto" if "Raspberry Pi 5" in model else ""
-    except Exception:
+    except:
         hwdec = ""
 
-    # Convert RTSPS to RTSP
+    # Convert RTSPS → RTSP
     url = re.sub(r"rtsps://([^:/]+):7441", r"rtsp://\1:7447", url)
 
-    log(f"Restarting stream '{name}' as {title} at {tile_w}x{tile_h}+{x}+{y}")
+    log(f"Restarting '{name}' ({title}) at {win_w}x{win_h}+{x}+{y}")
     cmd = [
         MPV_BIN,
         "--no-border",
-        f"--geometry={tile_w}x{tile_h}+{x}+{y}",
+        f"--geometry={win_w}x{win_h}+{x}+{y}",
         "--profile=low-latency",
         "--untimed",
         "--no-correct-pts",
@@ -112,36 +128,45 @@ def launch_stream(row: int, col: int, name: str, url: str, tile: dict):
         "--keep-open=yes",
         url
     ]
+    # Launch detached
     subprocess.Popen(cmd, stdout=open(LOG_FILE, "a"), stderr=subprocess.STDOUT)
-    title_last_restart[title] = time.time()
+    last_restart[title] = now
 
-# --- Section: Main Monitoring Loop ---
+# --- Stale-Stream Cleanup ---
+def kill_stale_streams():
+    now = time.time()
+    for proc in psutil.process_iter(['name','create_time']):
+        if proc.info['name'] == 'mpv':
+            age = now - proc.info['create_time']
+            if age > STALE_INTERVAL:
+                log(f"Killing stale mpv (PID={proc.pid}, age={int(age)}s)")
+                try:
+                    proc.kill()
+                except Exception as e:
+                    log(f"Failed to kill PID {proc.pid}: {e}")
+
+# --- Main Loop ---
 def main():
     log("Stream monitor started.")
+    global last_stale_sweep
+
     while True:
+        # 1) Health check & restart missing streams
         try:
-            with open(CONFIG_FILE) as f:
-                config = json.load(f)
+            cfg = json.load(open(CONFIG_FILE))
+            for tile in cfg.get("tiles", []):
+                launch_stream(tile)
         except Exception as e:
-            log(f"Failed to load config: {e}")
-            time.sleep(CHECK_INTERVAL)
-            continue
+            log(f"Config/read error: {e}")
 
-        for tile in config.get("tiles", []):
-            row = tile.get("row")
-            col = tile.get("col")
-            name = tile.get("name", "Unnamed")
-            url = tile.get("url", "")
-            title = f"tile_{row}_{col}"
-
-            if not url or url.lower() == "null":
-                continue
-
-            now = time.time()
-            cooldown = now - title_last_restart.get(title, 0)
-
-            if not is_process_running(title) and cooldown >= RESTART_COOLDOWN:
-                launch_stream(row, col, name, url, tile)
+        # 2) Stale cleanup every STALE_INTERVAL
+        now = time.time()
+        if now - last_stale_sweep >= STALE_INTERVAL:
+            try:
+                kill_stale_streams()
+            except Exception as e:
+                log(f"Stale cleanup error: {e}")
+            last_stale_sweep = now
 
         time.sleep(CHECK_INTERVAL)
 
