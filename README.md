@@ -1,137 +1,168 @@
-# UniFi RTSP Viewport for Raspberry Pi
+UniFi RTSP Viewport for Raspberry Pi
 
-A lightweight RTSP viewer system for UniFi Protect cameras, designed to emulate the UniFi Protect Viewport experience on a Raspberry Pi with minimal overhead.
+A lightweight Raspberry Pi–based viewport for displaying UniFi Protect RTSP/S streams in a tiled layout, with automatic resolution detection, health monitoring, and HDMI‑CEC support.
 
----
+🧰 Initial Raspberry Pi Setup
 
-## 🧰 Initial Raspberry Pi Setup
+Recommended OS: Raspberry Pi OS Lite (64‑bit)Ideal for headless or kiosk‑style deployments.
 
-**Recommended OS:** Raspberry Pi OS Lite (64‑bit)
-Ideal for headless or kiosk‑style deployments.
+1. Flash Raspberry Pi OS Lite
 
-### 1. Flash Raspberry Pi OS Lite
+Use the Raspberry Pi Imager to install Raspberry Pi OS Lite (64‑bit).
 
-Use the [Raspberry Pi Imager](https://www.raspberrypi.com/software/) to install **Raspberry Pi OS Lite (64‑bit)**.
+2. Log in via SSH or directly
 
-### 2. Log in via SSH or directly
+Configure hostname, timezone, Wi‑Fi, etc. via raspi-config:
 
-Set hostname, timezone, Wi‑Fi, etc. via `raspi-config`:
-
-```bash
 sudo raspi-config
-```
 
-### 3. Expand Filesystem (Optional)
+3. Expand Filesystem (Optional)
 
-```bash
 sudo raspi-config   # Advanced Options → Expand Filesystem
-```
 
-### 4. Clone the Repository
+Quickstart
 
-```bash
-sudo apt install git -y
-cd ~
+Clone the repository
+
 git clone https://github.com/jsetsuda/unifi-viewport.git
 cd unifi-viewport
-```
 
----
+Install with the unified installer
 
-## 📦 Installation Options
+chmod +x installmain.sh
+sudo ./installmain.sh --all
 
-Choose the one that best fits your OS and preferences:
+Reboot or start the service
 
-### 🅰️ Option 1: Full GUI Setup on Raspberry Pi OS Lite
+sudo systemctl start unifi-viewport.service
 
-Installs a minimal GUI (LightDM + Openbox), dependencies, a dedicated `viewport` user with autologin, and configures everything to launch on boot.
+Installation Flags
 
-```bash
-chmod +x installgui.sh
-./installgui.sh
-```
+Run installmain.sh with one or more of these flags:
 
-**Best for:** Clean Raspberry Pi OS Lite (64‑bit) with no existing desktop.
+--pip
 
----
+Creates a Python 3 virtual environment in ./venv/.
 
-### 🅱️ Option 2: System‑Wide Install on Desktop/GUI OS
+Installs Python dependencies (python-dotenv, requests, psutil, uiprotect, Pillow).
 
-Installs all required system packages and Python libraries globally.
+Prompts to configure .env with UniFi Protect credentials.
 
-```bash
-chmod +x install.sh
-./install.sh
-```
+Adds .env to .gitignore and marks entry‑point scripts executable.
 
-**Best for:** Raspberry Pi OS with Desktop already installed, or any Debian‑based GUI system.
+--gui
 
----
+Installs LightDM, Openbox, X11, and display utilities (x11-xserver-utils, xdotool, unclutter).
 
-### 🅾️ Option 3: Developer Mode with Virtualenv
+Creates a viewport user (if missing) and configures autologin on display :0.
 
-Creates an isolated Python virtual environment and installs only the Python libraries you need.
+Sets up Openbox autostart to launch the layout chooser at login.
 
-```bash
-chmod +x installpip.sh
-./installpip.sh
-source venv/bin/activate
-```
+--cec
 
-**Best for:** Developers, CI/testing, or when you don’t want to modify system Python.
+Installs and configures HDMI‑CEC keepalive via cec-utils.
 
----
+Ensures the TV remains powered on and responsive to CEC commands.
 
-## 🚀 First Run
+--all
 
-If autolaunch doesn’t occur (or you’re using virtualenv), manually fetch your cameras and choose a layout:
+Shorthand for running --pip, --gui, and --cec together.
 
-```bash
-source venv/bin/activate   # Skip if you did a system‑wide install
-./layout_chooser.py
-```
+Example:
 
-After you save a grid once, subsequent reboots will auto‑launch the last layout after a 30 s timeout.
+sudo ./installmain.sh --pip --gui
 
----
+Installs Python deps and GUI without CEC.
 
-## 📌 Project Components
+🎛 Configuring UniFi Protect for RTSP
 
-| File                    | Description                                                                        |
-| ----------------------- | ---------------------------------------------------------------------------------- |
-| `layout_chooser.py`     | GUI to select grid size, assign cameras to tiles, and save `viewport_config.json`. |
-| `get_streams.py`        | Fetches UniFi Protect RTSP URLs and writes `camera_urls.json`.                     |
-| `viewport.sh`           | Shell script to launch all tiles in MPV and start health monitor.                  |
-| `monitor_streams.py`    | Monitors each tile’s MPV process and restarts stale streams.                       |
-| `overlay_box.py`        | (Optional) Draws a red overlay on any tile that is down.                           |
-| `kill_stale_streams.py` | (Optional) Helper to terminate orphaned MPV processes.                             |
+In UniFi Protect → Camera → Settings → Advanced
 
----
+Enable H.264 RTSP (“High”, “Medium”, or “Low”).
 
-## 🎛 Configuring UniFi Protect for RTSP
+Avoid HEVC (H.265) unless your Pi can handle it.
 
-1. In UniFi Protect → Camera → Settings → Advanced
-2. Enable **H.264** RTSP (“High”, “Medium”, or “Low”).
-3. Avoid HEVC (H.265) unless your Pi can handle it.
-4. Recording Settings → **Encoding = Standard**.
+Recording Settings → Encoding = Standard.
 
-To refresh your camera list after adding or removing cameras:
+To refresh your camera list after changes:
 
-```bash
-source venv/bin/activate   # or skip if system‑wide
+source venv/bin/activate   # if using venv
 python3 get_streams.py
-```
 
----
+🚀 First Run
 
-## 🧪 Development Notes
+If autolaunch doesn’t occur (or you’re in virtualenv mode), manually fetch cameras and choose a layout:
 
-* All Python dependencies are in `requirements.txt`.
-* `installpip.sh` creates a `venv/` and installs `python-dotenv`, `requests`, `psutil`.
-* Ensure you have `python3-tk`, `python3-psutil`, `xdotool`, `xrandr`, `xdpyinfo`, `mpv`, and `jq` installed for full functionality.
+source venv/bin/activate   # skip if system‑wide install
+./layout_chooser.py
 
----
+After saving a layout, reboots will auto‑launch the last configuration after a brief timeout.
 
-## 🔐 GitHub Contributors
+Project Components
 
-When pushing code you’ll need a Personal Access Token (PAT) instead of your password. Generate one [here](https://github.com/settings/tokens) and use it in place of your GitHub password.
+File
+
+Description
+
+layout_chooser.py
+
+GUI for selecting grid size, assigning cameras to tiles, and saving viewport_config.json.
+
+get_streams.py
+
+Fetches UniFi Protect RTSP URLs and writes to camera_urls.json.
+
+viewport.sh
+
+Detects display resolution, launches MPV tiles, and starts the health monitor.
+
+monitor_streams.py
+
+Periodically checks each stream’s health and restarts stalled streams.
+
+kill_stale_streams.py
+
+Terminates orphaned MPV processes.
+
+overlay_box.py
+
+Draws status overlays on each tile indicating stream health.
+
+installmain.sh
+
+Unified installer for pip, GUI, and CEC components with command‑line flags.
+
+How It Works
+
+┌───────────────┐   ┌───────────────┐   ┌────────────────┐
+│ UniFi Protect │──▶│ get_streams.py│──▶│ camera_urls.json│
+└───────────────┘   └───────────────┘   └────────────────┘
+                             │
+                             ▼
+                       ┌───────────────┐   ┌───────────────┐
+                       │ viewport.sh   │──▶│   mpv windows │
+                       └───────────────┘   └───────────────┘
+                             │
+         ┌───────────────────┴──────────────────┐
+         ▼                                      ▼
+┌──────────────────┐                   ┌────────────────┐
+│ monitor_streams.py│                   │ overlay_box.py │
+└──────────────────┘                   └────────────────┘
+
+Troubleshooting
+
+Service logs:
+
+sudo journalctl -u unifi-viewport.service -f
+
+Application logs:Check viewport.log in the repository root.
+
+Resolution detection:Ensure xrandr (X11) or tvservice (RPi) is installed.
+
+CEC issues:Verify cec-utils and that your TV supports HDMI‑CEC.
+
+API errors:Confirm .env credentials and network connectivity to your UniFi Protect controller.
+
+License
+
+This project is licensed under the MIT License – see LICENSE for details.
