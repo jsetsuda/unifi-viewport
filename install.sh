@@ -134,7 +134,7 @@ EOF
 
   # 7. Mark scripts executable
   chmod +x get_streams.py layout_chooser.py viewport.sh \
-           monitor_streams.py kill_stale_streams.py
+           monitor_streams.py
   echo "  • Entry-point scripts marked executable"
 
   # Deactivate venv
