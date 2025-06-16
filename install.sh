@@ -14,50 +14,21 @@ sudo apt install -y \
   python3 \
   python3-pip \
   python3-psutil \
-  python3-tk \
-  ffmpeg \
-  mpv \
   jq \
-  xdotool \
-  x11-utils \
-  git \
-  libnss3-tools \
-  libgl1-mesa-glx \
-  libpulse0 \
-  libegl1
+  mpv \
+  cec-utils \
+  x11-xserver-utils \
+  ffmpeg \
+  tmux \
+  libxcb-util0-dev \
+  libxcb1-dev \
+  libxcb-randr0-dev \
+  libxcb-xinerama0-dev \
+  git
 
-echo "[INFO] Installing Python packages globally…"
-pip3 install --break-system-packages \
-  python-dotenv \
-  requests \
-  psutil
-
-# Prompt for .env if it doesn't exist
-if [ ! -f .env ]; then
-  echo
-  echo "[INFO] Configure your UniFi Protect connection:"
-  read -rp "  UFP_HOST      (e.g. https://192.168.5.10): " UFP_HOST
-  read -rp "  UFP_USERNAME  : " UFP_USERNAME
-  read -rsp "  UFP_PASSWORD  : " UFP_PASSWORD
-  echo
-
-  cat > .env <<EOF
-UFP_HOST=$UFP_HOST
-UFP_USERNAME=$UFP_USERNAME
-UFP_PASSWORD=$UFP_PASSWORD
-EOF
-
-  echo "[INFO] Created .env with your credentials."
-else
-  echo "[INFO] .env already exists – skipping."
-fi
-
-# Ensure .env is in .gitignore
-touch .gitignore
-if ! grep -qxF ".env" .gitignore; then
-  echo ".env" >> .gitignore
-  echo "[INFO] Added .env to .gitignore"
-fi
+# (Optional) install Python dependencies via pip
+echo "[INFO] Installing Python packages…"
+pip3 install --user -r requirements.txt
 
 # Make sure all of our scripts are executable
 chmod +x get_streams.py \
@@ -67,7 +38,45 @@ chmod +x get_streams.py \
          kill_stale_streams.py \
          overlay_box.py
 
+# ── Install systemd service for unifi-viewport ────────────────────────────────
+SERVICE_USER=viewport
+SERVICE_GROUP=viewport
+INSTALL_DIR="$(pwd)"
+SERVICE_FILE=/etc/systemd/system/unifi-viewport.service
+
+echo
+echo "[INFO] Installing systemd service → $SERVICE_FILE"
+
+sudo tee "$SERVICE_FILE" > /dev/null << 'EOF'
+[Unit]
+Description=UniFi Protect Viewport
+After=graphical.target network.target
+Wants=graphical.target
+
+[Service]
+User=${SERVICE_USER}
+Group=${SERVICE_GROUP}
+WorkingDirectory=${INSTALL_DIR}
+Environment=DISPLAY=:0
+Environment=XDG_RUNTIME_DIR=/run/user/$(id -u ${SERVICE_USER})
+
+ExecStart=${INSTALL_DIR}/viewport.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical.target
+EOF
+
+echo "[INFO] Reloading systemd daemon and enabling service..."
+sudo systemctl daemon-reload
+sudo systemctl enable unifi-viewport.service
+sudo systemctl start  unifi-viewport.service
+
 echo
 echo "[✅] Installation complete!"
-echo "  • Run the chooser:   ./layout_chooser.py"
-echo "  • Or launch streams: ./viewport.sh"
+echo "  • Run the chooser manually:   ./layout_chooser.py"
+echo "  • Or let it auto-start at boot via systemd."
+echo
+echo "Manage the service with:"
+echo "  sudo systemctl [start|stop|restart|status] unifi-viewport.service"
