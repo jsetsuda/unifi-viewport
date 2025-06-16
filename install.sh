@@ -239,7 +239,10 @@ sudo systemctl daemon-reload
 sudo systemctl enable unifi-viewport.service
 sudo systemctl start  unifi-viewport.service
 
-# ------------------------------------------------------------------------------
+# ── Fix permissions so the viewport user can write configs ────────────────────
+echo "[INFO] Fixing permissions on project directory…"
+sudo chown -R viewport:viewport "${INSTALL_DIR}"
+
 echo
 echo "[✅ Done!]"
 echo "Next steps:"
