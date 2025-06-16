@@ -4,7 +4,7 @@ IFS=$'\n\t'
 
 # ------------------------------------------------------------------------------
 # UniFi-Viewport Consolidated Installer
-# Usage: ./install.sh [--pip] [--gui] [--cec] [--all] [--help]
+# Usage: ./installmain.sh [--pip] [--gui] [--cec] [--all] [--help]
 # ------------------------------------------------------------------------------
 
 usage() {
@@ -13,7 +13,7 @@ Usage: $0 [OPTIONS]
 
 Options:
   --pip       Set up Python virtualenv, deps, .env, gitignore
-  --gui       Install GUI/display environment, autologin, autostart
+  --gui       Install GUI/display environment (LightDM + Openbox) and prompt .env
   --cec       Run HDMI-CEC keepalive installer
   --all       Do pip + gui + cec
   -h, --help  Show this message
@@ -46,7 +46,9 @@ fi
 # Ensure we're in repo root
 cd "$(dirname "$0")"
 
-# — Core system packages for everything —
+# ------------------------------------------------------------------------------
+# Core system packages (needed by any mode)
+# ------------------------------------------------------------------------------
 echo "[INFO] Updating apt cache…"
 sudo apt update
 
@@ -63,6 +65,28 @@ sudo apt install -y \
   x11-xserver-utils \
   xdotool \
   git
+
+# ------------------------------------------------------------------------------
+# Helper: prompt for .env credentials if missing
+# ------------------------------------------------------------------------------
+prompt_env() {
+  if [[ ! -f .env ]]; then
+    echo
+    echo "  • Configuring UniFi Protect credentials (.env)…"
+    read -rp "    UFP_HOST     (e.g. https://192.168.5.10): " UFP_HOST
+    read -rp "    UFP_USERNAME : " UFP_USERNAME
+    read -rsp "    UFP_PASSWORD : " UFP_PASSWORD
+    echo
+    cat > .env <<EOF
+UFP_HOST=$UFP_HOST
+UFP_USERNAME=$UFP_USERNAME
+UFP_PASSWORD=$UFP_PASSWORD
+EOF
+    echo "    → .env created"
+  else
+    echo "  • .env exists, skipping"
+  fi
+}
 
 # ------------------------------------------------------------------------------
 # Section: Python / pip/venv setup
@@ -100,22 +124,7 @@ EOF
   pip install -r requirements.txt
 
   # 5. Prompt for .env
-  if [[ ! -f .env ]]; then
-    echo
-    echo "  • Configuring UniFi Protect credentials (.env)…"
-    read -rp "    UFP_HOST     (e.g. https://192.168.5.10): " UFP_HOST
-    read -rp "    UFP_USERNAME : " UFP_USERNAME
-    read -rsp "    UFP_PASSWORD : " UFP_PASSWORD
-    echo
-    cat > .env <<EOF
-UFP_HOST=$UFP_HOST
-UFP_USERNAME=$UFP_USERNAME
-UFP_PASSWORD=$UFP_PASSWORD
-EOF
-    echo "    → .env created"
-  else
-    echo "  • .env exists, skipping"
-  fi
+  prompt_env
 
   # 6. Add .env to .gitignore
   grep -qxF '.env' .gitignore 2>/dev/null || {
@@ -125,7 +134,7 @@ EOF
 
   # 7. Mark scripts executable
   chmod +x get_streams.py layout_chooser.py viewport.sh \
-           monitor_streams.py kill_stale_streams.py overlay_box.py
+           monitor_streams.py kill_stale_streams.py
   echo "  • Entry-point scripts marked executable"
 
   # Deactivate venv
@@ -150,6 +159,9 @@ if $DO_GUI; then
     lxappearance \
     gtk2-engines-pixbuf
 
+  # Prompt for .env here as well
+  prompt_env
+
   # Create viewport user if missing
   if ! id viewport &>/dev/null; then
     echo "  • Creating 'viewport' user…"
@@ -159,7 +171,7 @@ if $DO_GUI; then
 
   echo "  • Configuring LightDM autologin…"
   sudo mkdir -p /etc/lightdm/lightdm.conf.d
-  sudo tee /etc/lightdm/lightdm.conf.d/50-viewport.conf > /dev/null <<EOF
+  sudo tee /etc/lightdm/lightdm.conf.d/50-viewport.conf >/dev/null <<EOF
 [Seat:*]
 autologin-user=viewport
 autologin-user-timeout=0
@@ -168,7 +180,7 @@ EOF
 
   echo "  • Creating Openbox autostart…"
   sudo -u viewport mkdir -p /home/viewport/.config/openbox
-  sudo tee /home/viewport/.config/openbox/autostart > /dev/null <<'EOF'
+  sudo tee /home/viewport/.config/openbox/autostart >/dev/null <<'EOF'
 #!/usr/bin/env bash
 # disable screen blanking
 xset s off
@@ -204,7 +216,7 @@ echo "[STEP] Installing systemd service → /etc/systemd/system/unifi-viewport.s
 SERVICE_USER=viewport
 INSTALL_DIR="$(pwd)"
 
-sudo tee /etc/systemd/system/unifi-viewport.service > /dev/null <<EOF
+sudo tee /etc/systemd/system/unifi-viewport.service >/dev/null <<EOF
 [Unit]
 Description=UniFi Protect Viewport
 After=graphical.target network.target
@@ -232,9 +244,9 @@ sudo systemctl start  unifi-viewport.service
 echo
 echo "[✅ Done!]"
 echo "Next steps:"
-echo "  • To reconfigure .env, re-run with --pip"
-echo "  • To tweak autostart, re-run with --gui"
-echo "  • To adjust CEC schedule, re-run with --cec"
+echo "  • To reconfigure .env, re-run with --pip or --gui"
+echo "  • To tweak GUI autostart, re-run with --gui"
+echo "  • To adjust CEC, re-run with --cec"
 echo
 echo "Control the viewport service with:"
 echo "  sudo systemctl [start|stop|restart|status] unifi-viewport.service"
