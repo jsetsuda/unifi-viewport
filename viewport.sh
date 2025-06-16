@@ -40,9 +40,26 @@ if ! $JQ -e '.grid and .tiles and (.tiles|length>0)' "$CONFIG" &>/dev/null; then
 fi
 
 # ── Get display size ────────────────────────────────────────────────────────
-if IFS=' ' read -r W H <<< "$($XDOTOOL getdisplaygeometry)"; then
-  echo "[INFO] Detected display geometry: ${W}×${H}"
+if command -v xrandr &>/dev/null; then
+  XRANDR_LINE=$(xrandr --current \
+    | grep " connected primary" \
+    || xrandr --current | grep " connected" | head -n1)
+  if [[ $XRANDR_LINE =~ ([0-9]+)x([0-9]+)\+ ]]; then
+    W="${BASH_REMATCH[1]}"
+    H="${BASH_REMATCH[2]}"
+    echo "[INFO] Detected display resolution via xrandr: ${W}×${H}"
+  else
+    echo "[WARN] Could not parse xrandr output; falling back"
+    W=3840; H=2160
+    echo "[WARN] Using fallback ${W}×${H}"
+  fi
+elif command -v tvservice &>/dev/null; then
+  RES=$(tvservice -s | grep -o '[0-9]\+x[0-9]\+')
+  W=${RES%x*}
+  H=${RES#*x}
+  echo "[INFO] Detected display resolution via tvservice: ${W}×${H}"
 else
+  echo "[WARN] Neither xrandr nor tvservice available; using fallback"
   W=3840; H=2160
   echo "[WARN] Using fallback ${W}×${H}"
 fi
@@ -52,8 +69,8 @@ ROWS=$($JQ -r '.grid[0] // 1' "$CONFIG")
 COLS=$($JQ -r '.grid[1] // 1' "$CONFIG")
 (( ROWS<1 )) && ROWS=1
 (( COLS<1 )) && COLS=1
-TW=$(( W  / COLS ))
-TH=$(( H  / ROWS ))
+TW=$(( W / COLS ))
+TH=$(( H / ROWS ))
 echo "[DEBUG] Grid: ${ROWS}×${COLS}, tile size: ${TW}×${TH}"
 
 # ── Hardware decode hint for Pi 5 ──────────────────────────────────────────
@@ -67,11 +84,13 @@ $JQ -c '.tiles[]' "$CONFIG" | while read -r tile; do
   )"
   [[ $url && $url != "null" ]] || continue
 
-  # convert secure→plain RTSP
+  # Convert secure→plain RTSP
   url=$(sed -E 's|rtsps://([^:/]+):7441|rtsp://\1:7447|' <<<"$url")
 
-  X=$(( C * TW )) Y=$(( R * TH ))
-  WW=$(( w * TW ))  HH=$(( h * TH ))
+  X=$(( C * TW ))
+  Y=$(( R * TH ))
+  WW=$(( w * TW ))
+  HH=$(( h * TH ))
 
   echo "[INFO] Launching \"$name\" @ ${WW}×${HH}+${X}+${Y}"
   "$MPV" \
