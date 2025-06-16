@@ -73,7 +73,7 @@ prompt_env() {
   if [[ ! -f .env ]]; then
     echo
     echo "  • Configuring UniFi Protect credentials (.env)…"
-    read -rp "    UFP_HOST     (e.g. https://192.168.5.10): " UFP_HOST
+    read -rp "    UFP_HOST     (e.g. https://192.168.1.10): " UFP_HOST
     read -rp "    UFP_USERNAME : " UFP_USERNAME
     read -rsp "    UFP_PASSWORD : " UFP_PASSWORD
     echo
