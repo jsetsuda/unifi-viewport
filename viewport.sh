@@ -120,6 +120,8 @@ for tile in "${TILES[@]}"; do
     --vo=gpu $HWDEC \
     --title="${TITLE}" \
     --no-audio \
+    --mute=yes \
+    --ao=null \
     --keep-open=yes \
     "$url" &
 
