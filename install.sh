@@ -4,7 +4,7 @@ IFS=$'\n\t'
 
 # ------------------------------------------------------------------------------
 # UniFi-Viewport Consolidated Installer
-# Usage: ./installmain.sh [--pip] [--gui] [--cec] [--all] [--help]
+# Usage: ./install.sh [--pip] [--gui] [--cec] [--all] [--help]
 # ------------------------------------------------------------------------------
 
 usage() {
@@ -12,10 +12,10 @@ usage() {
 Usage: $0 [OPTIONS]
 
 Options:
-  --pip       Set up Python virtualenv, deps, .env, gitignore
-  --gui       Install GUI/display environment (LightDM + Openbox) and prompt .env
-  --cec       Run HDMI-CEC keepalive installer
-  --all       Do pip + gui + cec
+  --pip       Set up Python virtualenv, deps, and .env
+  --gui       Install GUI/display environment and prompt for .env
+  --cec       Install HDMI-CEC keepalive
+  --all       Run pip, gui, and cec steps
   -h, --help  Show this message
 EOF
   exit 1
@@ -38,16 +38,16 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
-# If no flags, show help
+# If no flags provided, show help
 if ! $DO_PIP && ! $DO_GUI && ! $DO_CEC; then
   usage
 fi
 
-# Ensure we're in repo root
+# Ensure we're in the repo root
 cd "$(dirname "$0")"
 
 # ------------------------------------------------------------------------------
-# Core system packages (needed by any mode)
+# Install core system packages (required by all modes)
 # ------------------------------------------------------------------------------
 echo "[INFO] Updating apt cache…"
 sudo apt update
@@ -73,7 +73,7 @@ prompt_env() {
   if [[ ! -f .env ]]; then
     echo
     echo "  • Configuring UniFi Protect credentials (.env)…"
-    read -rp "    UFP_HOST     (e.g. https://192.168.1.10): " UFP_HOST
+    read -rp "    UFP_HOST     (e.g. https://192.168.5.10): " UFP_HOST
     read -rp "    UFP_USERNAME : " UFP_USERNAME
     read -rsp "    UFP_PASSWORD : " UFP_PASSWORD
     echo
@@ -89,24 +89,24 @@ EOF
 }
 
 # ------------------------------------------------------------------------------
-# Section: Python / pip/venv setup
+# Section: Python / pip / venv setup
 # ------------------------------------------------------------------------------
 if $DO_PIP; then
   echo
-  echo "[STEP] Python virtualenv & pip dependencies →"
+  echo "[STEP] Python virtualenv & dependencies →"
 
-  # 1. Create venv
+  # Create venv if needed
   if [[ ! -d venv ]]; then
     echo "  • Creating venv…"
     python3 -m venv venv
   fi
 
-  # 2. Activate
+  # Activate venv
   echo "  • Activating venv…"
   # shellcheck disable=SC1091
   source venv/bin/activate
 
-  # 3. Ensure requirements.txt
+  # Ensure requirements.txt
   if [[ ! -f requirements.txt ]]; then
     cat > requirements.txt <<EOF
 python-dotenv>=1.0.0
@@ -118,24 +118,23 @@ EOF
     echo "  • Wrote default requirements.txt"
   fi
 
-  # 4. Install via pip
-  echo "  • Upgrading pip & installing…"
+  # Install Python packages
+  echo "  • Upgrading pip & installing requirements…"
   pip install --upgrade pip
   pip install -r requirements.txt
 
-  # 5. Prompt for .env
+  # Prompt for .env
   prompt_env
 
-  # 6. Add .env to .gitignore
+  # Add .env to .gitignore
   grep -qxF '.env' .gitignore 2>/dev/null || {
     echo ".env" >> .gitignore
     echo "  • Added .env to .gitignore"
   }
 
-  # 7. Mark scripts executable
-  chmod +x get_streams.py layout_chooser.py viewport.sh \
-           monitor_streams.py
-  echo "  • Entry-point scripts marked executable"
+  # Mark entry scripts executable
+  chmod +x get_streams.py layout_chooser.py viewport.sh monitor_streams.py
+  echo "  • Marked entry-point scripts executable"
 
   # Deactivate venv
   deactivate
@@ -162,7 +161,7 @@ if $DO_GUI; then
   # Prompt for .env here as well
   prompt_env
 
-  # Create viewport user if missing
+  # Create 'viewport' user if missing
   if ! id viewport &>/dev/null; then
     echo "  • Creating 'viewport' user…"
     sudo useradd -m -s /bin/bash viewport
@@ -187,12 +186,8 @@ xset s off
 xset -dpms
 xset s noblank
 
-# hide mouse
+# hide mouse when idle
 unclutter &
-
-# launch chooser
-cd /home/viewport/unifi-viewport
-./layout_chooser.py &
 EOF
   sudo chmod +x /home/viewport/.config/openbox/autostart
   sudo chown -R viewport:viewport /home/viewport/.config
@@ -238,7 +233,7 @@ EOF
 echo "Reloading systemd daemon & enabling service…"
 sudo systemctl daemon-reload
 sudo systemctl enable unifi-viewport.service
-sudo systemctl start  unifi-viewport.service
+sudo systemctl start unifi-viewport.service
 
 # ------------------------------------------------------------------------------
 echo
