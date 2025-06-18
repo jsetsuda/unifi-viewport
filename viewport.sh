@@ -4,14 +4,7 @@ IFS=$'\n\t'
 
 # -----------------------------------------------------------------------------
 # viewport.sh
-# 1) Activate venv if present
-# 2) Kill any stray mpv processes and stale windows
-# 3) Fetch camera list if needed
-# 4) Optionally run layout chooser (--choose-layout)
-# 5) Validate config
-# 6) Detect resolution & compute grid
-# 7) For each tile: kill existing + launch 1 mpv instance
-# 8) Start monitor_streams.py in background
+# Unifi Viewport launcher: cleans up old streams, starts new ones
 # -----------------------------------------------------------------------------
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
@@ -43,12 +36,23 @@ echo "[INFO] Killing all existing mpv processes"
 pkill -9 -f mpv || true
 sleep 1
 
-# 4) Kill any stale MPV windows (ghosts)
-if command -v wmctrl &>/dev/null; then
-  echo "[INFO] Killing stale windows with title tile_*"
-  wmctrl -l | awk '$0 ~ /tile_/ {print $1}' | while read -r wid; do
-    wmctrl -ic "$wid"
+# 4) Kill ghost windows left behind from crashed/stale mpv
+echo "[INFO] Searching for stale tile windows"
+if command -v xdotool &>/dev/null; then
+  TILE_WIDS=$(xdotool search --name '^tile_') || true
+  for wid in $TILE_WIDS; do
+    echo "[INFO] Killing stale window ID: $wid"
+    xdotool windowkill "$wid"
+    sleep 0.1
   done
+elif command -v wmctrl &>/dev/null; then
+  wmctrl -l | awk '$0 ~ /tile_/ {print $1}' | while read -r wid; do
+    echo "[INFO] Killing stale window ID: $wid"
+    wmctrl -ic "$wid"
+    sleep 0.1
+  done
+else
+  echo "[WARN] No xdotool or wmctrl available to kill stale windows"
 fi
 
 # 5) Check for required tools
