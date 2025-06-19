@@ -81,15 +81,11 @@ if [[ ! -f "$CAMERA_JSON" ]] || ! $JQ_BIN -e '. | length>0' "$CAMERA_JSON" &>/de
   $PYTHON "$ROOT/get_streams.py" && echo "[INFO] camera_urls.json created" || echo "[WARN] get_streams.py failed"
 fi
 
-# 9) Run layout chooser only if --choose-layout is passed or no config
-if [[ ! -f "$CONFIG" || "${1:-}" == "--choose-layout" ]]; then
-  echo "[INFO] Launching layout chooser"
-  set +e
-  $PYTHON "$CHOOSER" >>"$LOG" 2>&1
-  set -e
-else
-  echo "[INFO] Using existing layout config"
-fi
+# 9) Always run layout chooser
+echo "[INFO] Launching layout chooser"
+set +e
+$PYTHON "$CHOOSER" >>"$LOG" 2>&1
+set -e
 
 # 10) Validate configuration
 if ! $JQ_BIN -e '.grid and .tiles and (.tiles|length>0)' "$CONFIG" &>/dev/null; then
