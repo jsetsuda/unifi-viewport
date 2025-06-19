@@ -24,6 +24,7 @@ CHECK_INTERVAL   = 5         # seconds between health checks
 RESTART_COOLDOWN = 5         # min seconds between restarts per tile
 STALE_INTERVAL   = 30 * 60   # seconds before an mpv is considered stale
 KILL_UNKNOWN     = False     # set True to auto-kill rogue tiles
+FLAG_FILE        = "layout_updated.flag"
 # ──────────────────────────────────────────────────────────────────────────────
 
 last_restart = {}        # title → timestamp
@@ -147,6 +148,16 @@ def launch(tile):
 def main():
     global last_stale_sweep, last_config_hash
     log("Stream monitor started")
+
+    # Delay enforcement if layout was just updated
+    if os.path.exists(FLAG_FILE):
+        log("Detected layout_updated.flag – sleeping before enforcing streams")
+        time.sleep(5)
+        try:
+            os.remove(FLAG_FILE)
+            log("layout_updated.flag cleared")
+        except Exception as e:
+            log(f"Warning: could not delete layout_updated.flag – {e}")
 
     while True:
         cfg = load_config()
