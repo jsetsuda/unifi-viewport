@@ -24,13 +24,6 @@ FLAG_FILE     = os.path.join(SCRIPT_DIR, "layout_updated.flag")
 GET_STREAMS   = os.path.join(SCRIPT_DIR, "get_streams.py")
 
 CUSTOM_LAYOUTS = {
-    "2x1": {
-        "grid": [1, 2],
-        "tiles": [
-            {"row": 0, "col": 0, "w": 1, "h": 1},
-            {"row": 0, "col": 1, "w": 1, "h": 1},
-        ]
-    },
     "3_custom": {
         "grid": [2, 2],
         "tiles": [
@@ -67,20 +60,16 @@ ALL_OPTIONS    = SIMPLE_LAYOUTS + list(CUSTOM_LAYOUTS.keys())
 AUTO_TIMEOUT   = 20000  # milliseconds (20s)
 
 def fetch_camera_list():
-    """Populate camera_urls.json via get_streams.py --list."""
     try:
-        subprocess.run(
-            ["python3", GET_STREAMS, "--list"],
-            cwd=SCRIPT_DIR,
-            check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
+        subprocess.run([
+            "python3", GET_STREAMS, "--list"
+        ], cwd=SCRIPT_DIR, check=True,
+           stdout=subprocess.DEVNULL,
+           stderr=subprocess.DEVNULL)
     except subprocess.CalledProcessError:
-        pass  # non-fatal at startup
+        pass
 
 def load_cameras():
-    """Return (names, url_map)."""
     if not os.path.isfile(CAMERA_FILE):
         return [], {}
     try:
@@ -95,7 +84,7 @@ class LayoutChooser(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Viewport Layout Chooser")
-        self.geometry("800x600")
+        self.geometry("1200x600")
         self.resizable(False, False)
 
         fetch_camera_list()
@@ -147,7 +136,6 @@ class LayoutChooser(tk.Tk):
         if self.has_existing:
             tk.Button(btnf, text="Use Previous Layout", command=self._use_previous, width=20)\
               .grid(row=0, column=1, padx=5)
-            # schedule auto-timeout
             self._timeout_id = self.after(AUTO_TIMEOUT, self._use_previous)
 
     def _use_previous(self):
@@ -161,7 +149,6 @@ class LayoutChooser(tk.Tk):
             return
 
         self._signal_interaction()
-        # cancel auto-timeout if pending
         if hasattr(self, "_timeout_id"):
             self.after_cancel(self._timeout_id)
 
@@ -238,8 +225,10 @@ class LayoutChooser(tk.Tk):
             messagebox.showerror("Error", f"Failed to save config:\n{e}")
             return
 
-        messagebox.showinfo("Saved", "Configuration saved!\nLaunching streams…")
-        self.destroy()
+        msg = tk.Toplevel(self)
+        msg.title("Saved")
+        tk.Label(msg, text="Configuration saved!\nLaunching streams…", font=("Arial", 12)).pack(padx=30, pady=20)
+        self.after(3000, lambda: (msg.destroy(), self.destroy()))
 
 if __name__ == "__main__":
     LayoutChooser().mainloop()
