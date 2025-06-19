@@ -23,7 +23,7 @@ MPV_BIN          = "/usr/bin/mpv"
 CHECK_INTERVAL   = 5         # seconds between health checks
 RESTART_COOLDOWN = 5         # min seconds between restarts per tile
 STALE_INTERVAL   = 30 * 60   # seconds before an mpv is considered stale
-KILL_UNKNOWN     = False     # set True to auto-kill rogue tiles
+KILL_UNKNOWN     = True      # set True to auto-kill rogue tiles
 FLAG_FILE        = "layout_updated.flag"
 # ──────────────────────────────────────────────────────────────────────────────
 
