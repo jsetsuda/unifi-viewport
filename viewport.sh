@@ -28,17 +28,24 @@ else
   echo "[INFO] No venv found, using system Python: $PYTHON"
 fi
 
-# 2) Logging
+# 2) Rotate log if too large (100 MB)
+if [[ -f "$LOG" ]] && [[ $(stat -c%s "$LOG") -ge 104857600 ]]; then
+  TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+  mv "$LOG" "$LOG.$TIMESTAMP"
+  echo "[INFO] Rotated viewport.log → viewport.log.$TIMESTAMP"
+fi
+
+# 3) Redirect all output to log
 exec > >(tee -a "$LOG") 2>&1
 echo "[INFO] Starting viewport.sh at $(date)"
 
-# 3) Ensure network is up
+# 4) Ensure network is up
 until ping -c1 192.168.5.10 &>/dev/null; do
   echo "[INFO] Waiting for network..."
   sleep 2
 done
 
-# 4) Handle recent layout update flag
+# 5) Handle recent layout update flag
 if [[ -f "$FLAG" ]]; then
   echo "[INFO] Detected layout_updated.flag. Waiting to allow layout to stabilize..."
   sleep 3
@@ -46,12 +53,12 @@ if [[ -f "$FLAG" ]]; then
   echo "[INFO] layout_updated.flag cleared"
 fi
 
-# 5) Kill all existing mpv processes
+# 6) Kill all existing mpv processes
 echo "[INFO] Killing all existing mpv processes"
 pkill -9 -f mpv || true
 sleep 1
 
-# 6) Kill ghost windows left behind from crashed/stale mpv
+# 7) Kill ghost windows left behind from crashed/stale mpv
 echo "[INFO] Searching for stale tile windows"
 if command -v xdotool &>/dev/null; then
   TILE_WIDS=$(xdotool search --name '^tile_') || true
@@ -70,30 +77,30 @@ else
   echo "[WARN] No xdotool or wmctrl available to kill stale windows"
 fi
 
-# 7) Check for required tools
+# 8) Check for required tools
 for tool in "$JQ_BIN" "$MPV_BIN" python3 xrandr; do
   command -v "$tool" &>/dev/null || { echo "[ERROR] $tool missing"; exit 1; }
 done
 
-# 8) Fetch camera list if missing/empty
+# 9) Fetch camera list if missing or empty
 if [[ ! -f "$CAMERA_JSON" ]] || ! $JQ_BIN -e '. | length>0' "$CAMERA_JSON" &>/dev/null; then
   echo "[INFO] Fetching camera list"
   $PYTHON "$ROOT/get_streams.py" && echo "[INFO] camera_urls.json created" || echo "[WARN] get_streams.py failed"
 fi
 
-# 9) Always run layout chooser
+# 10) Launch layout chooser
 echo "[INFO] Launching layout chooser"
 set +e
 $PYTHON "$CHOOSER" >>"$LOG" 2>&1
 set -e
 
-# 10) Validate configuration
+# 11) Validate configuration
 if ! $JQ_BIN -e '.grid and .tiles and (.tiles|length>0)' "$CONFIG" &>/dev/null; then
   echo "[ERROR] Invalid or missing $CONFIG; aborting"
   exit 1
 fi
 
-# 11) Detect display resolution
+# 12) Detect display resolution
 if command -v xrandr &>/dev/null; then
   XR_LINE=$(xrandr --current | grep " connected primary" || xrandr --current | grep " connected" | head -n1)
   if [[ $XR_LINE =~ ([0-9]+)x([0-9]+)\+ ]]; then
@@ -108,7 +115,7 @@ else
 fi
 echo "[INFO] Resolution: ${W}×${H}"
 
-# 12) Compute grid size
+# 13) Compute grid size
 ROWS=$($JQ_BIN -r '.grid[0] // 1' "$CONFIG")
 COLS=$($JQ_BIN -r '.grid[1] // 1' "$CONFIG")
 (( ROWS<1 )) && ROWS=1
@@ -117,7 +124,7 @@ TW=$(( W / COLS ))
 TH=$(( H / ROWS ))
 echo "[INFO] Grid: ${ROWS}×${COLS}, tile: ${TW}×${TH}"
 
-# 13) HWDEC for Raspberry Pi 5
+# 14) HWDEC for Raspberry Pi 5
 MODEL=$(tr -d '\0' < /proc/device-tree/model 2>/dev/null || echo "")
 if [[ $MODEL == *"Raspberry Pi 5"* ]]; then
   HWDEC="--hwdec=v4l2m2m-copy"
@@ -126,10 +133,10 @@ else
 fi
 echo "[INFO] HWDEC: ${HWDEC:-none}"
 
-# 14) Read tiles into Bash array
+# 15) Read tiles from config
 mapfile -t TILES < <($JQ_BIN -c '.tiles[]' "$CONFIG")
 
-# 15) Launch MPV for each tile
+# 16) Launch MPV windows
 for tile in "${TILES[@]}"; do
   read -r R C Wm Hm name url < <(printf '%s' "$tile" | $JQ_BIN -r '[.row,.col,.w,.h,.name,.url] | @tsv')
   [[ -n $url && $url != "null" ]] || continue
@@ -165,7 +172,7 @@ for tile in "${TILES[@]}"; do
   sleep 0.2
 done
 
-# 16) Start monitor_streams.py in background
+# 17) Start monitor_streams.py in background
 echo "[INFO] Starting monitor_streams.py"
 $PYTHON "$MONITOR" &
 wait
