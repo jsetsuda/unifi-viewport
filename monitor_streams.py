@@ -15,6 +15,8 @@ import psutil
 import re
 import os
 import hashlib
+import logging
+from logging.handlers import RotatingFileHandler
 
 # ─── Configuration ─────────────────────────────────────────────────────────────
 CONFIG_FILE      = "viewport_config.json"
@@ -27,15 +29,23 @@ KILL_UNKNOWN     = True      # set True to auto-kill rogue tiles
 FLAG_FILE        = "layout_updated.flag"
 # ──────────────────────────────────────────────────────────────────────────────
 
+# ─── Logging Setup ─────────────────────────────────────────────────────────────
+logger = logging.getLogger("monitor")
+logger.setLevel(logging.INFO)
+handler = RotatingFileHandler(LOG_FILE, maxBytes=10*1024*1024, backupCount=3)
+formatter = logging.Formatter('[MONITOR %(asctime)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+def log(msg: str):
+    logger.info(msg)
+
+# ─── Globals ───────────────────────────────────────────────────────────────────
 last_restart = {}        # title → timestamp
 last_stale_sweep = 0.0
 last_config_hash = None
 
-def log(msg: str):
-    ts = time.strftime("%Y-%m-%d %H:%M:%S")
-    with open(LOG_FILE, "a") as f:
-        f.write(f"[MONITOR {ts}] {msg}\n")
-
+# ─── Utilities ─────────────────────────────────────────────────────────────────
 def hash_config(cfg):
     try:
         return hashlib.md5(json.dumps(cfg, sort_keys=True).encode()).hexdigest()
@@ -55,8 +65,19 @@ def load_config():
         log(f"Failed to load config: {e}")
         return {"tiles": []}
 
+def get_resolution():
+    try:
+        out = subprocess.check_output("xrandr --current", shell=True).decode()
+        for line in out.splitlines():
+            if " connected primary" in line or " connected" in line:
+                match = re.search(r"(\d+)x(\d+)\+", line)
+                if match:
+                    return int(match.group(1)), int(match.group(2))
+    except:
+        pass
+    return 3840, 2160  # fallback
+
 def is_running(title: str):
-    """Return True if exactly one MPV is running for this tile title."""
     for p in psutil.process_iter(attrs=["cmdline"]):
         try:
             if p.info["cmdline"] and any(arg == f"--title={title}" for arg in p.info["cmdline"]):
@@ -78,7 +99,6 @@ def kill_stale():
                     log(f"  error killing PID {p.pid}: {e}")
 
 def enforce_one_per_tile():
-    """Ensure at most one mpv process per tile_<r>_<c>."""
     procs = {}
     for p in psutil.process_iter(attrs=["pid", "cmdline", "create_time"]):
         try:
@@ -103,7 +123,6 @@ def enforce_one_per_tile():
                     log(f"  error killing PID {pid}: {e}")
 
 def find_unexpected_tiles(cfg):
-    """Log and optionally kill mpv tiles that aren't in config."""
     valid_titles = {f"tile_{t['row']}_{t['col']}" for t in cfg.get("tiles", [])}
     for p in psutil.process_iter(attrs=["pid", "cmdline"]):
         try:
@@ -135,21 +154,31 @@ def launch(tile):
     if now - last_restart.get(title, 0) < RESTART_COOLDOWN:
         return
 
+    W, H = get_resolution()
+    grid_rows, grid_cols = cfg.get("grid", [1, 1])
+    TW = W // grid_cols
+    TH = H // grid_rows
+    x = col * TW
+    y = row * TH
+    ww = tile.get("w", 1) * TW
+    hh = tile.get("h", 1) * TH
+
     cmd = [
         MPV_BIN,
         "--no-border",
+        f"--geometry={ww}x{hh}+{x}+{y}",
         f"--title={title}",
         url
     ]
     log(f"Restarting {title}")
-    subprocess.Popen(cmd, stdout=open(LOG_FILE, "a"), stderr=subprocess.STDOUT)
+    subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     last_restart[title] = now
 
+# ─── Main Loop ─────────────────────────────────────────────────────────────────
 def main():
-    global last_stale_sweep, last_config_hash
+    global last_stale_sweep, last_config_hash, cfg
     log("Stream monitor started")
 
-    # Delay enforcement if layout was just updated
     if os.path.exists(FLAG_FILE):
         log("Detected layout_updated.flag – sleeping before enforcing streams")
         time.sleep(5)
@@ -166,19 +195,14 @@ def main():
             log("Detected layout config change")
             last_config_hash = new_hash
 
-        # 1) Restart any missing tiles
         for tile in cfg.get("tiles", []):
             title = f"tile_{tile.get('row')}_{tile.get('col')}"
             if not is_running(title):
                 launch(tile)
 
-        # 2) Kill duplicate tiles
         enforce_one_per_tile()
-
-        # 3) Kill unexpected tiles
         find_unexpected_tiles(cfg)
 
-        # 4) Kill stale processes
         if time.time() - last_stale_sweep >= STALE_INTERVAL:
             kill_stale()
             last_stale_sweep = time.time()
