@@ -1,118 +1,213 @@
 #!/usr/bin/env python3
+"""
+get_streams.py — v2 (official UniFi Protect Integration API)
+
+Lists cameras and RTSPS stream URLs via the official Protect integration API,
+authenticated with an X-API-KEY header. Writes camera_urls.json in a shape
+that's drop-in compatible with the v1 downstream (layout_chooser.py, viewport.sh).
+
+Usage:
+  python3 get_streams.py             # write camera_urls.json
+  python3 get_streams.py --list      # print JSON to stdout, no files written
+  python3 get_streams.py --debug     # log API responses to stderr (for troubleshooting)
+  python3 get_streams.py --no-enable # do not create RTSPS streams; skip cameras that lack one
+"""
 import argparse
-import os
 import json
+import os
+import sys
+import time
+
 import requests
+import urllib3
 from dotenv import load_dotenv
+from urllib3.exceptions import InsecureRequestWarning
 
-"""
-get_streams.py
+urllib3.disable_warnings(InsecureRequestWarning)
 
-Description:
-  - Fetches camera streams from UniFi Protect API and outputs camera_urls.json.
-  - Optionally generates a default viewport_config.json based on camera count.
-  - Supports a `--list` flag to print the camera list JSON to stdout without saving files.
-"""
-
-# --- Load environment ---
 load_dotenv()
-UFP_HOST = os.getenv("UFP_HOST")
-UFP_USERNAME = os.getenv("UFP_USERNAME")
-UFP_PASSWORD = os.getenv("UFP_PASSWORD")
+UFP_HOST = (os.getenv("UFP_HOST") or "").rstrip("/")
+UFP_API_KEY = os.getenv("UFP_API_KEY")
+UFP_VERIFY_SSL = os.getenv("UFP_VERIFY_SSL", "false").lower() in ("1", "true", "yes")
 
-# --- Validate environment ---
-if not all([UFP_HOST, UFP_USERNAME, UFP_PASSWORD]):
-    raise ValueError("Missing one or more .env values: UFP_HOST, UFP_USERNAME, UFP_PASSWORD")
+if not UFP_HOST or not UFP_API_KEY or UFP_API_KEY == "your_api_key_here":
+    sys.exit("[ERROR] Missing .env values: UFP_HOST and UFP_API_KEY are required")
 
-# --- API endpoints ---
-LOGIN_URL = f"{UFP_HOST}/api/auth/login"
-CAMERA_URL = f"{UFP_HOST}/proxy/protect/api/cameras"
-
-# --- Output files ---
+API_BASE = f"{UFP_HOST}/proxy/protect/integration/v1"
+HEADERS = {"X-API-KEY": UFP_API_KEY, "Accept": "application/json"}
 CAMERA_FILE = "camera_urls.json"
 CONFIG_FILE = "viewport_config.json"
 
-# --- Request headers ---
-HEADERS = {"Content-Type": "application/json"}
 
-# --- Arg parsing ---
-parser = argparse.ArgumentParser(description="Fetch UniFi Protect camera streams.")
-parser.add_argument("--list", action="store_true", help="Print camera list JSON to stdout and exit.")
-args = parser.parse_args()
-
-# --- Suppress insecure warnings ---
-from urllib3.exceptions import InsecureRequestWarning
-import urllib3
-urllib3.disable_warnings(InsecureRequestWarning)
-
-
-def login(session):
-    resp = session.post(
-        LOGIN_URL,
-        json={"username": UFP_USERNAME, "password": UFP_PASSWORD},
-        headers=HEADERS,
-        verify=False
-    )
-    resp.raise_for_status()
-
-
-def get_cameras(session):
-    resp = session.get(CAMERA_URL, headers=HEADERS, verify=False)
-    resp.raise_for_status()
-    return resp.json()
+def _request(session, method, path, *, body=None, debug=False):
+    """Send a request, retrying on 429 with exponential backoff (NVR caps ~10 req/s)."""
+    url = f"{API_BASE}{path}"
+    headers = dict(HEADERS)
+    if body is not None:
+        headers["Content-Type"] = "application/json"
+    delay = 0.2
+    for attempt in range(5):
+        resp = session.request(method, url, headers=headers, json=body,
+                               verify=UFP_VERIFY_SSL, timeout=15)
+        if debug:
+            sys.stderr.write(f"[DEBUG] {method} {url} -> {resp.status_code}\n")
+            if resp.text:
+                sys.stderr.write(f"[DEBUG]   body: {resp.text[:600]}\n")
+        if resp.status_code != 429:
+            return resp
+        if debug:
+            sys.stderr.write(f"[DEBUG] 429 rate-limited; sleeping {delay:.2f}s and retrying\n")
+        time.sleep(delay)
+        delay *= 2
+    return resp  # final attempt's response, even if still 429
 
 
-def parse_cameras(data):
-    streams = []
-    for cam in data:
-        name = cam.get("name", "Unnamed")
-        if cam.get("state") != "CONNECTED":
+def list_cameras(session, debug=False):
+    r = _request(session, "GET", "/cameras", debug=debug)
+    r.raise_for_status()
+    return r.json()
+
+
+def get_rtsps(session, camera_id, debug=False):
+    r = _request(session, "GET", f"/cameras/{camera_id}/rtsps-stream", debug=debug)
+    if r.status_code == 404:
+        return None
+    r.raise_for_status()
+    return r.json()
+
+
+def _has_any_url(payload):
+    if isinstance(payload, dict):
+        return any(isinstance(v, str) and v for v in payload.values())
+    if isinstance(payload, list):
+        return any(isinstance(d, dict) and d.get("url") for d in payload)
+    return False
+
+
+def enable_rtsps(session, camera_id, debug=False):
+    body = {"qualities": ["high", "medium", "low"]}
+    r = _request(session, "POST", f"/cameras/{camera_id}/rtsps-stream",
+                 body=body, debug=debug)
+    r.raise_for_status()
+    return r.json() if r.text else {}
+
+
+def _resolution_label(camera, quality):
+    """Best-effort 'WxH @ fps' suffix from the camera object for a given quality."""
+    channels = camera.get("channels") or []
+    quality_norm = (quality or "").lower()
+    for ch in channels:
+        ch_quality = (ch.get("name") or ch.get("quality") or "").lower()
+        if ch_quality == quality_norm:
+            w, h, fps = ch.get("width"), ch.get("height"), ch.get("fps")
+            if w and h and fps:
+                return f"{w}x{h} @ {fps}fps"
+            if w and h:
+                return f"{w}x{h}"
+    return None
+
+
+def streams_for(camera, rtsps_payload):
+    """Normalize the rtsps-stream payload into [{name, url}, ...]."""
+    if not rtsps_payload:
+        return []
+    cam_name = camera.get("name") or camera.get("displayName") or "Camera"
+
+    if isinstance(rtsps_payload, dict):
+        pairs = list(rtsps_payload.items())
+    elif isinstance(rtsps_payload, list):
+        pairs = [(d.get("quality") or d.get("name"), d.get("url")) for d in rtsps_payload]
+    else:
+        return []
+
+    out = []
+    for quality, url in pairs:
+        if not url or not isinstance(url, str):
             continue
-        channels = cam.get("channels", [])
-        for ch in channels:
-            rtsp_alias = ch.get("rtspAlias")
-            width = ch.get("width")
-            height = ch.get("height")
-            fps = ch.get("fps")
-            if not rtsp_alias:
-                continue
-            url = f"rtsps://{UFP_HOST.split('://')[-1]}:7441/{rtsp_alias}"
-            label = f"{name} ({width}x{height} @ {fps}fps)"
-            streams.append({"name": label, "url": url})
-    return streams
+        suffix = _resolution_label(camera, quality)
+        label = f"{cam_name} ({quality}"
+        if suffix:
+            label += f", {suffix}"
+        label += ")"
+        out.append({"name": label, "url": url})
+    return out
 
 
-def save_camera_list(streams):
-    with open(CAMERA_FILE, "w") as f:
-        json.dump(streams, f, indent=2)
-
-
-def save_default_layout(streams):
-    count = len(streams)
-    if count <= 4:
+def write_default_layout_if_needed(stream_count):
+    """Write a hint config only when there isn't already a valid grid+tiles layout."""
+    try:
+        existing = json.load(open(CONFIG_FILE))
+        if existing.get("grid") and existing.get("tiles"):
+            return
+    except (FileNotFoundError, json.JSONDecodeError):
+        pass
+    if stream_count <= 4:
         layout = "2x2"
-    elif count <= 9:
+    elif stream_count <= 9:
         layout = "3x3"
     else:
         layout = "4x4"
-    config = {"layout": layout}
     with open(CONFIG_FILE, "w") as f:
-        json.dump(config, f, indent=2)
+        json.dump({"layout": layout}, f, indent=2)
 
 
 def main():
+    p = argparse.ArgumentParser(description="Fetch UniFi Protect camera RTSPS URLs (official API).")
+    p.add_argument("--list", action="store_true", help="Print JSON to stdout, do not write files.")
+    p.add_argument("--debug", action="store_true", help="Log raw API responses to stderr.")
+    p.add_argument("--no-enable", action="store_true",
+                   help="Skip cameras without an RTSPS stream instead of creating one.")
+    args = p.parse_args()
+
     session = requests.Session()
-    login(session)
-    data = get_cameras(session)
-    streams = parse_cameras(data)
+    try:
+        cameras = list_cameras(session, debug=args.debug)
+    except requests.HTTPError as e:
+        sys.exit(f"[ERROR] Failed to list cameras: {e.response.status_code} {e.response.text[:200]}")
+    except requests.RequestException as e:
+        sys.exit(f"[ERROR] Network error talking to {API_BASE}: {e}")
+
+    if args.debug:
+        sys.stderr.write(f"[DEBUG] Found {len(cameras)} cameras in /cameras response\n")
+
+    streams = []
+    for cam in cameras:
+        cam_id = cam.get("id")
+        cam_name = cam.get("name") or cam.get("displayName") or cam_id
+        if not cam_id:
+            continue
+        if cam.get("state") and cam.get("state") != "CONNECTED":
+            sys.stderr.write(f"[INFO] Skipping {cam_name}: state={cam.get('state')}\n")
+            continue
+
+        rtsps = get_rtsps(session, cam_id, debug=args.debug)
+        # Treat "all qualities null" the same as missing — both mean RTSPS isn't enabled.
+        if not _has_any_url(rtsps) and not args.no_enable:
+            sys.stderr.write(f"[INFO] Enabling RTSPS streams for {cam_name}…\n")
+            try:
+                rtsps = enable_rtsps(session, cam_id, debug=args.debug)
+            except requests.HTTPError as e:
+                sys.stderr.write(f"[WARN] Could not enable RTSPS for {cam_name}: "
+                                 f"{e.response.status_code} {e.response.text[:200]}\n")
+                continue
+        if not _has_any_url(rtsps):
+            sys.stderr.write(f"[INFO] Skipping {cam_name}: no RTSPS stream available\n")
+            continue
+
+        cam_streams = streams_for(cam, rtsps)
+        if not cam_streams:
+            sys.stderr.write(f"[WARN] {cam_name}: rtsps-stream returned no usable URLs "
+                             f"(payload: {json.dumps(rtsps)[:200]})\n")
+        streams.extend(cam_streams)
 
     if args.list:
         print(json.dumps(streams, indent=2))
         return
 
-    save_camera_list(streams)
-    save_default_layout(streams)
-    print(f"[SUCCESS] Found {len(streams)} streams; wrote {CAMERA_FILE} and {CONFIG_FILE}")
+    with open(CAMERA_FILE, "w") as f:
+        json.dump(streams, f, indent=2)
+    write_default_layout_if_needed(len(streams))
+    print(f"[SUCCESS] Found {len(streams)} streams; wrote {CAMERA_FILE}")
 
 
 if __name__ == "__main__":
