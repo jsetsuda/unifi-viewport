@@ -8,9 +8,15 @@
 <body>
   <header>
     <h1>Camera Manager</h1>
-    <form action="{{ url_for('refresh_streams') }}" method="post" class="refresh-form">
-      <button type="submit" class="primary">Regenerate camera_urls.json</button>
-    </form>
+    <div class="header-actions">
+      <form action="{{ url_for('enable_all') }}" method="post"
+            onsubmit="return confirm('Enable high/medium/low RTSPS on every connected camera?');">
+        <button type="submit">Enable all RTSPS</button>
+      </form>
+      <form action="{{ url_for('refresh_streams') }}" method="post">
+        <button type="submit" class="primary">Regenerate camera_urls.json</button>
+      </form>
+    </div>
   </header>
 
   {% with messages = get_flashed_messages(with_categories=true) %}
@@ -49,9 +55,13 @@
                  {% if r.state != 'CONNECTED' %}disabled{% endif %}>
         </td>
         {% endfor %}
-        <td>
+        <td class="row-actions">
           <button form="form-{{ r.id }}" type="submit"
                   {% if r.state != 'CONNECTED' %}disabled title="Camera is offline"{% endif %}>Save</button>
+          <button form="enable-{{ r.id }}" type="submit" class="btn-small"
+                  {% if r.state != 'CONNECTED' %}disabled title="Camera is offline"{% endif %}>All on</button>
+          <button form="disable-{{ r.id }}" type="submit" class="btn-small btn-danger"
+                  {% if r.state != 'CONNECTED' %}disabled title="Camera is offline"{% endif %}>All off</button>
         </td>
       </tr>
       {% endfor %}
@@ -61,6 +71,8 @@
   {# Forms placed outside the table — referenced by `form=` attributes above #}
   {% for r in rows %}
     <form id="form-{{ r.id }}" action="{{ url_for('update_rtsps', camera_id=r.id) }}" method="post"></form>
+    <form id="enable-{{ r.id }}" action="{{ url_for('enable_one', camera_id=r.id) }}" method="post"></form>
+    <form id="disable-{{ r.id }}" action="{{ url_for('disable_one', camera_id=r.id) }}" method="post"></form>
   {% endfor %}
 
   <footer>

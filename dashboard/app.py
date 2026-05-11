@@ -72,6 +72,57 @@ def update_rtsps(camera_id):
     return redirect(url_for("index"))
 
 
+@app.route("/cameras/<camera_id>/rtsps/enable", methods=["POST"])
+def enable_one(camera_id):
+    try:
+        _client().set_rtsps_qualities(camera_id, list(QUALITIES))
+        flash(f"Enabled all RTSPS qualities ({camera_id[:8]}…)", "ok")
+    except Exception as e:
+        flash(f"Failed to enable: {e}", "err")
+    return redirect(url_for("index"))
+
+
+@app.route("/cameras/<camera_id>/rtsps/disable", methods=["POST"])
+def disable_one(camera_id):
+    try:
+        _client().set_rtsps_qualities(camera_id, [])
+        flash(f"Disabled RTSPS ({camera_id[:8]}…)", "ok")
+    except Exception as e:
+        flash(f"Failed to disable: {e}", "err")
+    return redirect(url_for("index"))
+
+
+@app.route("/cameras/enable-all", methods=["POST"])
+def enable_all():
+    try:
+        client = _client()
+        cameras = client.list_cameras()
+    except Exception as e:
+        flash(f"Failed to list cameras: {e}", "err")
+        return redirect(url_for("index"))
+
+    enabled, skipped, errors = 0, 0, []
+    for cam in cameras:
+        if cam.get("state") != "CONNECTED":
+            skipped += 1
+            continue
+        try:
+            client.set_rtsps_qualities(cam["id"], list(QUALITIES))
+            enabled += 1
+        except Exception as e:
+            errors.append(f"{cam.get('name') or cam.get('id')}: {e}")
+
+    parts = [f"Enabled RTSPS on {enabled} camera(s)"]
+    if skipped:
+        parts.append(f"{skipped} offline skipped")
+    msg = "; ".join(parts)
+    if errors:
+        flash(msg + f"; {len(errors)} error(s): " + " | ".join(errors[:3]), "err")
+    else:
+        flash(msg, "ok")
+    return redirect(url_for("index"))
+
+
 @app.route("/refresh", methods=["POST"])
 def refresh_streams():
     get_streams = PROJECT_ROOT / "get_streams.py"

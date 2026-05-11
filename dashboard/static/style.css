@@ -50,6 +50,13 @@ button {
 button:hover:not(:disabled) { border-color: var(--accent); }
 button:disabled { color: var(--muted); cursor: not-allowed; opacity: 0.5; }
 button.primary { background: var(--accent); border-color: var(--accent); color: white; }
+button.btn-small { padding: 4px 9px; font-size: 12px; }
+button.btn-danger { color: var(--err); border-color: rgba(220,38,38,0.4); }
+button.btn-danger:hover:not(:disabled) { border-color: var(--err); background: rgba(220,38,38,0.08); }
+
+.header-actions { display: flex; gap: 10px; align-items: center; }
+td.row-actions { white-space: nowrap; }
+td.row-actions button { margin-right: 4px; }
 
 table.cameras {
   width: 100%;
