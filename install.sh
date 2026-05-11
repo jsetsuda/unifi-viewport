@@ -72,15 +72,18 @@ sudo apt install -y \
 prompt_env() {
   if [[ ! -f .env ]]; then
     echo
-    echo "  • Configuring UniFi Protect credentials (.env)…"
+    echo "  • Configuring UniFi Protect access (.env)…"
+    echo "    Generate an API key in Protect:"
+    echo "      Settings → Control Plane → Integrations → Create API Key"
+    echo "    (Older firmware: Settings → Admins & Users → API Keys)"
     read -rp "    UFP_HOST     (e.g. https://192.168.5.10): " UFP_HOST
-    read -rp "    UFP_USERNAME : " UFP_USERNAME
-    read -rsp "    UFP_PASSWORD : " UFP_PASSWORD
+    read -rsp "    UFP_API_KEY  : " UFP_API_KEY
     echo
     cat > .env <<EOF
 UFP_HOST=$UFP_HOST
-UFP_USERNAME=$UFP_USERNAME
-UFP_PASSWORD=$UFP_PASSWORD
+UFP_API_KEY=$UFP_API_KEY
+# Optional: skip SSL verification for self-signed NVR certs
+# UFP_VERIFY_SSL=false
 EOF
     echo "    → .env created"
   else
@@ -112,8 +115,6 @@ if $DO_PIP; then
 python-dotenv>=1.0.0
 requests>=2.25.1
 psutil>=5.9.0
-uiprotect>=0.4.0
-Pillow>=9.0.0
 EOF
     echo "  • Wrote default requirements.txt"
   fi

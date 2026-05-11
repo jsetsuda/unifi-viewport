@@ -69,8 +69,8 @@ Run `install.sh` with one or more of these flags:
 * `--pip`
 
   * Creates a Python 3 virtual environment in `./venv/`.
-  * Installs Python dependencies (`python-dotenv`, `requests`, `psutil`, `uiprotect`, `Pillow`).
-  * Prompts to configure `.env` with UniFi Protect credentials.
+  * Installs Python dependencies (`python-dotenv`, `requests`, `psutil`).
+  * Prompts for `UFP_HOST` and `UFP_API_KEY` and writes `.env`.
   * Adds `.env` to `.gitignore` and marks entry-point scripts executable.
 
 * `--gui`
@@ -98,19 +98,32 @@ Installs Python deps and GUI without CEC.
 
 ---
 
-## 🎛 Configuring UniFi Protect for RTSP
+## 🎛 Configuring UniFi Protect
 
-1. In UniFi Protect → **Camera** → **Settings** → **Advanced**
-2. Enable **H.264** RTSP (“High”, “Medium”, or “Low”).
-3. Avoid HEVC (H.265) unless your Pi can handle it.
-4. **Recording Settings** → **Encoding = Standard**.
+This branch (`v2-api`) uses the **official UniFi Protect Integration API**, not the legacy reverse-engineered endpoints. Authentication is via an API key in the `X-API-KEY` header — no more storing a username/password on the Pi.
 
-To refresh your camera list after changes:
+### 1. Generate an API key
 
-```bash
-source venv/bin/activate   # if using venv
-python3 get_streams.py
-```
+In the UniFi Protect web UI:
+- **Settings → Control Plane → Integrations → Create API Key**
+- (Older firmware: **Settings → Admins & Users → API Keys**)
+
+Copy the key — it's only displayed once. Paste it into `.env` as `UFP_API_KEY` (the installer will prompt for it, or you can copy `.env.example` and fill it in by hand).
+
+### 2. Pick a video codec on each camera
+
+The kiosk plays streams with `mpv` and the Raspberry Pi's hardware decoder:
+- Set **Recording Settings → Encoding = Standard** (H.264) per camera.
+- Avoid **HEVC (H.265)** unless your Pi can decode it.
+
+### 3. Enable RTSPS streams
+
+You have two options:
+
+- **Manual** (matches v1 behavior): in Protect → Camera → Settings → Advanced, toggle the RTSP/RTSPS qualities you want streamed. Run `python3 get_streams.py` to pull the URLs.
+- **Automatic via API**: run `python3 get_streams.py --enable` once. The script will POST to `/cameras/{id}/rtsps-stream` for each camera missing a stream and enable high/medium/low qualities. Reversible from the Protect UI.
+
+By default (no flag), `get_streams.py` only reports cameras that *already* have RTSPS on, so subsequent kiosk restarts never silently change NVR config.
 
 ---
 
