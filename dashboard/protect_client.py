@@ -31,7 +31,7 @@ class ProtectClient:
         verify = os.environ.get("UFP_VERIFY_SSL", "false").lower() in ("1", "true", "yes")
         return cls(host, key, verify_ssl=verify)
 
-    def _request(self, method, path, body=None):
+    def _request(self, method, path, body=None, params=None):
         # NVR rate-limits to ~10 req/s; back off on 429.
         url = f"{self.api_base}{path}"
         delay = 0.2
@@ -40,8 +40,9 @@ class ProtectClient:
             headers = {}
             if body is not None:
                 headers["Content-Type"] = "application/json"
-            last = self.session.request(method, url, json=body, headers=headers,
-                                        verify=self.verify_ssl, timeout=15)
+            last = self.session.request(method, url, json=body, params=params,
+                                        headers=headers, verify=self.verify_ssl,
+                                        timeout=15)
             if last.status_code != 429:
                 return last
             time.sleep(delay)
@@ -61,8 +62,27 @@ class ProtectClient:
         return r.json() or {}
 
     def set_rtsps_qualities(self, camera_id, qualities):
-        """Set which RTSPS qualities are enabled. Pass [] to disable all."""
-        r = self._request("POST", f"/cameras/{camera_id}/rtsps-stream",
-                          body={"qualities": list(qualities)})
-        r.raise_for_status()
+        """Set which RTSPS qualities are enabled.
+
+        Non-empty list → POST with {"qualities": [...]} (enables/replaces).
+        Empty list     → DELETE the rtsps-stream resource (full disable).
+
+        POST with an empty qualities array returns 500 on at least some
+        firmware versions, so we treat full-disable as DELETE.
+        """
+        qualities = list(qualities)
+        if qualities:
+            r = self._request("POST", f"/cameras/{camera_id}/rtsps-stream",
+                              body={"qualities": qualities})
+        else:
+            # DELETE on this endpoint expects `qualities` as repeated query
+            # params (validated by AJV's request-query schema). To disable
+            # the camera fully we list every standard quality.
+            r = self._request("DELETE", f"/cameras/{camera_id}/rtsps-stream",
+                              params=[("qualities", q) for q in ("high", "medium", "low")])
+        try:
+            r.raise_for_status()
+        except requests.HTTPError as e:
+            body = (r.text or "")[:300]
+            raise requests.HTTPError(f"{e} — body: {body}", response=r) from e
         return r.json() if r.text else {}
