@@ -181,6 +181,10 @@ select {
 .tile-label { font-size: 11px; color: var(--muted); font-family: ui-monospace, monospace; }
 .tile select { width: 100%; }
 
+.tile-grid-readonly { max-width: 520px; }
+.tile-readonly { background: rgba(59,130,246,0.05); border-color: rgba(59,130,246,0.4); }
+.tile-cam { font-size: 13px; font-weight: 500; color: var(--text); }
+
 .save-row {
   display: flex;
   align-items: center;

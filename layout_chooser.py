@@ -21,12 +21,30 @@ SCRIPT_DIR    = os.path.dirname(os.path.abspath(__file__))
 CAMERA_FILE   = os.path.join(SCRIPT_DIR, "camera_urls.json")
 CONFIG_FILE   = os.path.join(SCRIPT_DIR, "viewport_config.json")
 FLAG_FILE     = os.path.join(SCRIPT_DIR, "layout_updated.flag")
+SKIP_FLAG     = os.path.join(SCRIPT_DIR, "layout_skip_chooser.flag")
 GET_STREAMS   = os.path.join(SCRIPT_DIR, "get_streams.py")
 
 # Layouts live in a shared module so the dashboard can offer the same set.
 import sys as _sys
 _sys.path.insert(0, SCRIPT_DIR)
 from layouts import ALL_OPTIONS, CUSTOM_LAYOUTS  # noqa: E402
+
+# Fast-path: when the dashboard pushed a layout via "Save & push config",
+# viewport_config.json is already correct and we want viewport.sh to launch
+# streams immediately — no chooser flash, no 20s "Use Previous Layout" wait.
+# Consume the one-shot flag, touch the stabilize flag, exit.
+if os.path.exists(SKIP_FLAG):
+    try:
+        os.remove(SKIP_FLAG)
+    except OSError:
+        pass
+    try:
+        _cfg = json.load(open(CONFIG_FILE))
+        if _cfg.get("grid") and _cfg.get("tiles"):
+            open(FLAG_FILE, "w").close()
+            _sys.exit(0)
+    except (FileNotFoundError, json.JSONDecodeError):
+        pass  # fall through to normal GUI flow if config is invalid
 
 AUTO_TIMEOUT   = int(os.environ.get("VIEWPORT_AUTO_TIMEOUT", "20000"))  # ms; set to 1 to auto-skip
 

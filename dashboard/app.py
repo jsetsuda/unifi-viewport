@@ -248,21 +248,33 @@ def layout_page():
     kiosk_root = _kiosk_root()
     cameras = _load_cameras(kiosk_root)
     current = _load_current_layout(kiosk_root)
-    layout_name = request.args.get("layout") or (current["grid"] and f"{current['grid'][0]}x{current['grid'][1]}" if current else None)
+
+    # Determine which layout to render: explicit ?layout=X wins; otherwise
+    # default to whatever's currently saved (the dashboard now records the
+    # layout name when it pushes a config; legacy configs fall back to a
+    # WxH derived from the saved grid).
+    layout_name = request.args.get("layout")
+    if not layout_name and current:
+        layout_name = current.get("layout") or f"{current['grid'][0]}x{current['grid'][1]}"
+    active_name = (current.get("layout") if current else None) or (
+        f"{current['grid'][0]}x{current['grid'][1]}" if current else None
+    )
+
     expanded = layouts.expand(layout_name) if layout_name else None
-    # Pre-fill assignments from the existing config if it matches the chosen layout shape.
     prefill = {}
     if expanded and current and current.get("tiles"):
         if len(current["tiles"]) == len(expanded["tiles"]):
             for i, t in enumerate(current["tiles"]):
                 if t.get("name"):
                     prefill[i] = t["name"]
+
     return render_template(
         "layout.html",
         kiosk_root=str(kiosk_root),
         options=layouts.ALL_OPTIONS,
         cameras=cameras,
         layout_name=layout_name,
+        active_name=active_name,
         expanded=expanded,
         prefill=prefill,
         current=current,
@@ -296,10 +308,16 @@ def save_layout():
         tile["name"] = picked
         tile["url"] = cam_by_name[picked]
 
+    # Record the layout name so the manager UI can highlight it later.
+    expanded["layout"] = layout_name
+
     config_path = kiosk_root / "viewport_config.json"
     try:
         config_path.write_text(json.dumps(expanded, indent=2))
         (kiosk_root / "layout_updated.flag").touch()
+        # Tell layout_chooser.py to skip its GUI on next launch — the kiosk
+        # should boot straight into the streams with the pushed layout.
+        (kiosk_root / "layout_skip_chooser.flag").touch()
     except OSError as e:
         flash(f"Failed to write {config_path}: {e}", "err")
         return redirect(url_for("layout_page", layout=layout_name))
