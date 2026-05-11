@@ -15,6 +15,7 @@
       </nav>
     </div>
     <div class="header-actions">
+      <button form="cams-form" type="submit" class="primary">Save All</button>
       <form action="{{ url_for('enable_all') }}" method="post"
             onsubmit="return confirm('Enable high/medium/low RTSPS on every connected camera?');">
         <button type="submit">Enable all</button>
@@ -28,7 +29,7 @@
       </form>
       <form action="{{ url_for('restart_kiosk') }}" method="post"
             onsubmit="return confirm('Restart the kiosk and clear the saved layout? The kiosk will show the layout chooser on the connected display.');">
-        <button type="submit" class="primary">Restart kiosk (fresh layout)</button>
+        <button type="submit">Restart kiosk (fresh layout)</button>
       </form>
     </div>
   </header>
@@ -64,13 +65,13 @@
         <td><span class="badge badge-{{ r.state|lower }}">{{ r.state }}</span></td>
         {% for q in qualities %}
         <td class="q-cell">
-          <input type="checkbox" form="form-{{ r.id }}" name="qualities" value="{{ q }}"
+          <input type="checkbox" form="cams-form" name="q_{{ r.id }}" value="{{ q }}"
                  {% if r.enabled[q] %}checked{% endif %}
                  {% if r.state != 'CONNECTED' %}disabled{% endif %}>
         </td>
         {% endfor %}
         <td class="row-actions">
-          <button form="form-{{ r.id }}" type="submit"
+          <button form="cams-form" type="submit" name="only" value="{{ r.id }}"
                   {% if r.state != 'CONNECTED' %}disabled title="Camera is offline"{% endif %}>Save</button>
           <button form="enable-{{ r.id }}" type="submit" class="btn-small"
                   {% if r.state != 'CONNECTED' %}disabled title="Camera is offline"{% endif %}>All on</button>
@@ -82,15 +83,21 @@
     </tbody>
   </table>
 
-  {# Forms placed outside the table — referenced by `form=` attributes above #}
+  {# Single shared form for the whole camera table. Each row's checkboxes
+     reference it via `form="cams-form"`; per-row Save buttons add a hidden
+     `only=<id>` so the server scopes the update to just that camera. #}
+  <form id="cams-form" action="{{ url_for('save_cameras') }}" method="post">
+    {% for r in rows %}<input type="hidden" name="camera_ids" value="{{ r.id }}">{% endfor %}
+  </form>
+
+  {# Per-camera quick-action forms (All on / All off). #}
   {% for r in rows %}
-    <form id="form-{{ r.id }}" action="{{ url_for('update_rtsps', camera_id=r.id) }}" method="post"></form>
     <form id="enable-{{ r.id }}" action="{{ url_for('enable_one', camera_id=r.id) }}" method="post"></form>
     <form id="disable-{{ r.id }}" action="{{ url_for('disable_one', camera_id=r.id) }}" method="post"></form>
   {% endfor %}
 
   <footer>
-    <p>{{ rows|length }} cameras · default = high+medium+low when enabling RTSPS for the first time.</p>
+    <p>{{ rows|length }} cameras · changes auto-regenerate <code>camera_urls.json</code> when saved.</p>
   </footer>
 </body>
 </html>

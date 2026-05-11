@@ -34,6 +34,26 @@ def _client():
     return ProtectClient.from_env()
 
 
+def _regenerate_camera_urls():
+    """Run get_streams.py against the kiosk dir and flash a one-line summary."""
+    get_streams = PROJECT_ROOT / "get_streams.py"
+    venv_py = PROJECT_ROOT / "venv" / "bin" / "python3"
+    python = str(venv_py) if venv_py.exists() else "python3"
+    proc = subprocess.run(
+        [python, str(get_streams)],
+        cwd=str(_kiosk_root()),
+        capture_output=True, text=True, timeout=60,
+    )
+    if proc.returncode != 0:
+        flash(f"Auto-regenerate failed (rc={proc.returncode}): "
+              f"{(proc.stderr or '').strip()[:200]}", "err")
+        return
+    import re
+    m = re.search(r"Found (\d+) streams?", proc.stdout)
+    n = m.group(1) if m else "?"
+    flash(f"camera_urls.json regenerated — {n} stream(s).", "ok")
+
+
 KIOSK_SERVICE = "unifi-viewport.service"
 
 
@@ -88,14 +108,42 @@ def index():
     return render_template("index.html", rows=rows, qualities=QUALITIES)
 
 
-@app.route("/cameras/<camera_id>/rtsps", methods=["POST"])
-def update_rtsps(camera_id):
-    qualities = [q for q in request.form.getlist("qualities") if q in QUALITIES]
-    try:
-        _client().set_rtsps_qualities(camera_id, qualities)
-        flash(f"Updated RTSPS qualities: {', '.join(qualities) if qualities else 'none (disabled)'}", "ok")
-    except Exception as e:
-        flash(f"Failed to update camera: {e}", "err")
+@app.route("/cameras/save", methods=["POST"])
+def save_cameras():
+    """Apply the checked-quality state for one or all cameras at once.
+
+    Form fields:
+      camera_ids — repeated; the cameras under management on the form
+      q_<id>     — repeated; the qualities checked for that camera
+      only       — optional; if present, only that camera is saved
+    """
+    only = (request.form.get("only") or "").strip()
+    camera_ids = [only] if only else request.form.getlist("camera_ids")
+    if not camera_ids:
+        flash("No cameras submitted.", "err")
+        return redirect(url_for("index"))
+
+    client = _client()
+    saved, errors = 0, []
+    for cam_id in camera_ids:
+        if not cam_id:
+            continue
+        qualities = [q for q in request.form.getlist(f"q_{cam_id}") if q in QUALITIES]
+        try:
+            client.set_rtsps_qualities(cam_id, qualities)
+            saved += 1
+        except Exception as e:
+            errors.append(f"{cam_id[:8]}…: {e}")
+
+    if errors:
+        flash(f"Saved {saved} camera(s); {len(errors)} error(s): " + " | ".join(errors[:3]), "err")
+    elif only:
+        flash("Saved camera.", "ok")
+    else:
+        flash(f"Saved {saved} camera(s).", "ok")
+
+    if saved:
+        _regenerate_camera_urls()
     return redirect(url_for("index"))
 
 
@@ -104,6 +152,7 @@ def enable_one(camera_id):
     try:
         _client().set_rtsps_qualities(camera_id, list(QUALITIES))
         flash(f"Enabled all RTSPS qualities ({camera_id[:8]}…)", "ok")
+        _regenerate_camera_urls()
     except Exception as e:
         flash(f"Failed to enable: {e}", "err")
     return redirect(url_for("index"))
@@ -114,6 +163,7 @@ def disable_one(camera_id):
     try:
         _client().set_rtsps_qualities(camera_id, [])
         flash(f"Disabled RTSPS ({camera_id[:8]}…)", "ok")
+        _regenerate_camera_urls()
     except Exception as e:
         flash(f"Failed to disable: {e}", "err")
     return redirect(url_for("index"))
@@ -151,12 +201,14 @@ def _bulk_set_qualities(target_qualities, verb):
 @app.route("/cameras/enable-all", methods=["POST"])
 def enable_all():
     _bulk_set_qualities(QUALITIES, "Enabled")
+    _regenerate_camera_urls()
     return redirect(url_for("index"))
 
 
 @app.route("/cameras/disable-all", methods=["POST"])
 def disable_all():
     _bulk_set_qualities([], "Disabled")
+    _regenerate_camera_urls()
     return redirect(url_for("index"))
 
 
