@@ -28,11 +28,12 @@ else
   echo "[INFO] No venv found, using system Python: $PYTHON"
 fi
 
-# 2) Rotate log if too large (100 MB)
-if [[ -f "$LOG" ]] && [[ $(stat -c%s "$LOG") -ge 104857600 ]]; then
+# 2) Rotate log if too large (25 MB) and prune to the most recent 3 archives
+if [[ -f "$LOG" ]] && [[ $(stat -c%s "$LOG") -ge 26214400 ]]; then
   TIMESTAMP=$(date +%Y%m%d_%H%M%S)
   mv "$LOG" "$LOG.$TIMESTAMP"
   echo "[INFO] Rotated viewport.log → viewport.log.$TIMESTAMP"
+  ls -1t "$LOG".* 2>/dev/null | tail -n +4 | xargs -r rm --
 fi
 
 # 3) Redirect all output to log
@@ -161,6 +162,8 @@ for tile in "${TILES[@]}"; do
 
   echo "[INFO] Launching '$name' as ${TITLE} @ ${WW}×${HH}+${X}+${Y}"
   "$MPV_BIN" \
+    --really-quiet \
+    --no-input-terminal \
     --no-border \
     --geometry=${WW}x${HH}+${X}+${Y} \
     --profile=low-latency \
