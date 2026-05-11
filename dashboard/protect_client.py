@@ -61,28 +61,40 @@ class ProtectClient:
         r.raise_for_status()
         return r.json() or {}
 
-    def set_rtsps_qualities(self, camera_id, qualities):
-        """Set which RTSPS qualities are enabled.
+    QUALITIES = ("high", "medium", "low")
 
-        Non-empty list → POST with {"qualities": [...]} (enables/replaces).
-        Empty list     → DELETE the rtsps-stream resource (full disable).
+    def set_rtsps_qualities(self, camera_id, desired):
+        """Set the RTSPS qualities for a camera to *exactly* `desired`.
 
-        POST with an empty qualities array returns 500 on at least some
-        firmware versions, so we treat full-disable as DELETE.
+        The official API uses ADD/REMOVE semantics, not REPLACE: POST with
+        a quality list adds those qualities to whatever is already enabled,
+        and DELETE with a `qualities` query removes those specific ones. So
+        to "set" a state we read the current state, diff, and issue POST
+        (to enable any missing) and/or DELETE (to disable any extras).
         """
-        qualities = list(qualities)
-        if qualities:
+        desired = {q for q in desired if q in self.QUALITIES}
+        current = self.get_rtsps(camera_id)
+        currently_on = {q for q in self.QUALITIES if current.get(q)}
+
+        to_enable = desired - currently_on
+        to_disable = currently_on - desired
+
+        if to_enable:
             r = self._request("POST", f"/cameras/{camera_id}/rtsps-stream",
-                              body={"qualities": qualities})
-        else:
-            # DELETE on this endpoint expects `qualities` as repeated query
-            # params (validated by AJV's request-query schema). To disable
-            # the camera fully we list every standard quality.
+                              body={"qualities": sorted(to_enable)})
+            self._raise_with_body(r, "enable")
+
+        if to_disable:
             r = self._request("DELETE", f"/cameras/{camera_id}/rtsps-stream",
-                              params=[("qualities", q) for q in ("high", "medium", "low")])
+                              params=[("qualities", q) for q in sorted(to_disable)])
+            self._raise_with_body(r, "disable")
+
+        return self.get_rtsps(camera_id)
+
+    @staticmethod
+    def _raise_with_body(resp, op):
         try:
-            r.raise_for_status()
+            resp.raise_for_status()
         except requests.HTTPError as e:
-            body = (r.text or "")[:300]
-            raise requests.HTTPError(f"{e} — body: {body}", response=r) from e
-        return r.json() if r.text else {}
+            body = (resp.text or "")[:300]
+            raise requests.HTTPError(f"{op}: {e} — body: {body}", response=resp) from e
