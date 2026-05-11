@@ -7,14 +7,28 @@
 </head>
 <body>
   <header>
-    <h1>Camera Manager</h1>
+    <div>
+      <h1>Camera Manager</h1>
+      <nav class="tabs">
+        <a href="{{ url_for('index') }}" class="tab tab-active">Cameras</a>
+        <a href="{{ url_for('layout_page') }}" class="tab">Layout</a>
+      </nav>
+    </div>
     <div class="header-actions">
       <form action="{{ url_for('enable_all') }}" method="post"
             onsubmit="return confirm('Enable high/medium/low RTSPS on every connected camera?');">
-        <button type="submit">Enable all RTSPS</button>
+        <button type="submit">Enable all</button>
+      </form>
+      <form action="{{ url_for('disable_all') }}" method="post"
+            onsubmit="return confirm('Disable ALL RTSPS streams on every camera? Streams will stop working until re-enabled.');">
+        <button type="submit" class="btn-danger">Disable all</button>
       </form>
       <form action="{{ url_for('refresh_streams') }}" method="post">
-        <button type="submit" class="primary">Regenerate camera_urls.json</button>
+        <button type="submit">Regenerate camera_urls.json</button>
+      </form>
+      <form action="{{ url_for('restart_kiosk') }}" method="post"
+            onsubmit="return confirm('Restart the kiosk and clear the saved layout? The kiosk will show the layout chooser on the connected display.');">
+        <button type="submit" class="primary">Restart kiosk (fresh layout)</button>
       </form>
     </div>
   </header>

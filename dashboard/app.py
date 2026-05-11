@@ -4,10 +4,13 @@ Lists cameras from the UniFi Protect Integration API, shows connection
 state, lets you toggle RTSPS qualities per camera, and triggers a
 regeneration of camera_urls.json on demand.
 """
+import json
 import os
 import secrets
+import shutil
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -19,6 +22,7 @@ load_dotenv(PROJECT_ROOT / ".env")
 # Allow `from dashboard.protect_client import ...` when launched as a script.
 sys.path.insert(0, str(PROJECT_ROOT))
 from dashboard.protect_client import ProtectClient  # noqa: E402
+import layouts  # noqa: E402  (shared module at PROJECT_ROOT)
 
 QUALITIES = ("high", "medium", "low")
 
@@ -28,6 +32,29 @@ app.secret_key = os.environ.get("DASHBOARD_SECRET", secrets.token_hex(16))
 
 def _client():
     return ProtectClient.from_env()
+
+
+KIOSK_SERVICE = "unifi-viewport.service"
+
+
+def _kiosk_root():
+    """Discover the kiosk service's WorkingDirectory at runtime.
+
+    Lets the dashboard manage the live kiosk even when the dashboard is
+    deployed from a different checkout. Falls back to the dashboard's own
+    project root if systemctl can't tell us.
+    """
+    try:
+        proc = subprocess.run(
+            ["systemctl", "show", KIOSK_SERVICE, "-p", "WorkingDirectory", "--value"],
+            capture_output=True, text=True, timeout=5,
+        )
+        path = (proc.stdout or "").strip()
+        if path:
+            return Path(path)
+    except (FileNotFoundError, subprocess.SubprocessError):
+        pass
+    return PROJECT_ROOT
 
 
 def _camera_rows(client):
@@ -92,27 +119,26 @@ def disable_one(camera_id):
     return redirect(url_for("index"))
 
 
-@app.route("/cameras/enable-all", methods=["POST"])
-def enable_all():
+def _bulk_set_qualities(target_qualities, verb):
     try:
         client = _client()
         cameras = client.list_cameras()
     except Exception as e:
         flash(f"Failed to list cameras: {e}", "err")
-        return redirect(url_for("index"))
+        return
 
-    enabled, skipped, errors = 0, 0, []
+    touched, skipped, errors = 0, 0, []
     for cam in cameras:
         if cam.get("state") != "CONNECTED":
             skipped += 1
             continue
         try:
-            client.set_rtsps_qualities(cam["id"], list(QUALITIES))
-            enabled += 1
+            client.set_rtsps_qualities(cam["id"], list(target_qualities))
+            touched += 1
         except Exception as e:
             errors.append(f"{cam.get('name') or cam.get('id')}: {e}")
 
-    parts = [f"Enabled RTSPS on {enabled} camera(s)"]
+    parts = [f"{verb} RTSPS on {touched} camera(s)"]
     if skipped:
         parts.append(f"{skipped} offline skipped")
     msg = "; ".join(parts)
@@ -120,6 +146,17 @@ def enable_all():
         flash(msg + f"; {len(errors)} error(s): " + " | ".join(errors[:3]), "err")
     else:
         flash(msg, "ok")
+
+
+@app.route("/cameras/enable-all", methods=["POST"])
+def enable_all():
+    _bulk_set_qualities(QUALITIES, "Enabled")
+    return redirect(url_for("index"))
+
+
+@app.route("/cameras/disable-all", methods=["POST"])
+def disable_all():
+    _bulk_set_qualities([], "Disabled")
     return redirect(url_for("index"))
 
 
@@ -141,6 +178,145 @@ def refresh_streams():
         stdout=proc.stdout,
         stderr=proc.stderr,
     )
+
+
+@app.route("/restart-kiosk", methods=["POST"])
+def restart_kiosk():
+    """Reset the saved layout and restart the kiosk service, so the next
+    boot of viewport.sh comes up on a clean layout-chooser screen."""
+    kiosk_root = _kiosk_root()
+    config = kiosk_root / "viewport_config.json"
+
+    backup = None
+    if config.exists():
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup = kiosk_root / f"viewport_config.{ts}.bak"
+        try:
+            shutil.move(str(config), str(backup))
+        except OSError as e:
+            return render_template(
+                "restart.html",
+                kiosk_root=str(kiosk_root),
+                backup_path=None,
+                returncode=None,
+                stdout="",
+                stderr=f"Could not back up {config}: {e}",
+            ), 500
+
+    proc = subprocess.run(
+        ["sudo", "-n", "/bin/systemctl", "restart", KIOSK_SERVICE],
+        capture_output=True, text=True, timeout=30,
+    )
+    return render_template(
+        "restart.html",
+        kiosk_root=str(kiosk_root),
+        backup_path=str(backup) if backup else None,
+        returncode=proc.returncode,
+        stdout=proc.stdout,
+        stderr=proc.stderr,
+    )
+
+
+def _load_cameras(kiosk_root):
+    """Read camera_urls.json from the kiosk dir; return [{name, url}, ...]."""
+    p = kiosk_root / "camera_urls.json"
+    if not p.exists():
+        return []
+    try:
+        cams = json.loads(p.read_text())
+    except (OSError, json.JSONDecodeError):
+        return []
+    return [{"name": c["name"], "url": c.get("url", "")}
+            for c in cams if isinstance(c, dict) and "name" in c]
+
+
+def _load_current_layout(kiosk_root):
+    p = kiosk_root / "viewport_config.json"
+    if not p.exists():
+        return None
+    try:
+        cfg = json.loads(p.read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    if cfg.get("grid") and cfg.get("tiles"):
+        return cfg
+    return None
+
+
+@app.route("/layout", methods=["GET"])
+def layout_page():
+    kiosk_root = _kiosk_root()
+    cameras = _load_cameras(kiosk_root)
+    current = _load_current_layout(kiosk_root)
+    layout_name = request.args.get("layout") or (current["grid"] and f"{current['grid'][0]}x{current['grid'][1]}" if current else None)
+    expanded = layouts.expand(layout_name) if layout_name else None
+    # Pre-fill assignments from the existing config if it matches the chosen layout shape.
+    prefill = {}
+    if expanded and current and current.get("tiles"):
+        if len(current["tiles"]) == len(expanded["tiles"]):
+            for i, t in enumerate(current["tiles"]):
+                if t.get("name"):
+                    prefill[i] = t["name"]
+    return render_template(
+        "layout.html",
+        kiosk_root=str(kiosk_root),
+        options=layouts.ALL_OPTIONS,
+        cameras=cameras,
+        layout_name=layout_name,
+        expanded=expanded,
+        prefill=prefill,
+        current=current,
+    )
+
+
+@app.route("/layout", methods=["POST"])
+def save_layout():
+    kiosk_root = _kiosk_root()
+    layout_name = (request.form.get("layout") or "").strip()
+    expanded = layouts.expand(layout_name)
+    if not expanded:
+        flash(f"Unknown layout: {layout_name!r}", "err")
+        return redirect(url_for("layout_page"))
+
+    cameras = _load_cameras(kiosk_root)
+    cam_by_name = {c["name"]: c["url"] for c in cameras}
+
+    tile_picks = request.form.getlist("tile_cam")
+    if len(tile_picks) != len(expanded["tiles"]):
+        flash(f"Got {len(tile_picks)} tile picks, layout needs {len(expanded['tiles'])}", "err")
+        return redirect(url_for("layout_page", layout=layout_name))
+
+    for tile, picked in zip(expanded["tiles"], tile_picks):
+        if not picked:
+            flash("Every tile needs a camera assigned.", "err")
+            return redirect(url_for("layout_page", layout=layout_name))
+        if picked not in cam_by_name:
+            flash(f"Camera not found in camera_urls.json: {picked!r}. Run Regenerate first.", "err")
+            return redirect(url_for("layout_page", layout=layout_name))
+        tile["name"] = picked
+        tile["url"] = cam_by_name[picked]
+
+    config_path = kiosk_root / "viewport_config.json"
+    try:
+        config_path.write_text(json.dumps(expanded, indent=2))
+        (kiosk_root / "layout_updated.flag").touch()
+    except OSError as e:
+        flash(f"Failed to write {config_path}: {e}", "err")
+        return redirect(url_for("layout_page", layout=layout_name))
+
+    flash(f"Saved {len(expanded['tiles'])}-tile layout → {config_path}", "ok")
+
+    if request.form.get("restart"):
+        proc = subprocess.run(
+            ["sudo", "-n", "/bin/systemctl", "restart", KIOSK_SERVICE],
+            capture_output=True, text=True, timeout=30,
+        )
+        if proc.returncode == 0:
+            flash("Kiosk service restarted; new layout is loading.", "ok")
+        else:
+            flash(f"Kiosk restart failed (rc={proc.returncode}): {(proc.stderr or '').strip()[:200]}", "err")
+
+    return redirect(url_for("layout_page", layout=layout_name))
 
 
 @app.route("/health")

@@ -256,6 +256,19 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 
+  # Give the dashboard process (running as ${SERVICE_USER_DASH}) just enough
+  # sudo to restart the kiosk service when the user clicks "Restart kiosk".
+  echo "  • Granting ${SERVICE_USER_DASH} NOPASSWD sudo for unifi-viewport.service control"
+  sudo tee /etc/sudoers.d/viewport-dashboard >/dev/null <<EOF
+${SERVICE_USER_DASH} ALL=(ALL) NOPASSWD: /bin/systemctl restart unifi-viewport.service
+${SERVICE_USER_DASH} ALL=(ALL) NOPASSWD: /bin/systemctl status unifi-viewport.service
+EOF
+  sudo chmod 440 /etc/sudoers.d/viewport-dashboard
+  if ! sudo visudo -c -f /etc/sudoers.d/viewport-dashboard >/dev/null 2>&1; then
+    echo "  [WARN] sudoers drop-in failed visudo syntax check; removing"
+    sudo rm -f /etc/sudoers.d/viewport-dashboard
+  fi
+
   sudo systemctl daemon-reload
   sudo systemctl enable unifi-viewport-dashboard.service
   sudo systemctl restart unifi-viewport-dashboard.service

@@ -153,15 +153,32 @@ After saving a layout, reboots will auto-launch the last configuration after a b
 A small Flask web UI for managing cameras without using the Protect web app.
 
 **What it does:**
+
+*Cameras tab:*
 - Lists every camera the API key can see, with model, MAC, and connection state.
-- Shows which RTSPS qualities (high/medium/low) are currently enabled per camera.
-- Toggle qualities on/off per camera with a single click — writes go straight to the Protect API.
-- "Regenerate `camera_urls.json`" button runs `get_streams.py` for you, so the kiosk picks up changes on the next layout-chooser cycle.
+- Per-camera quality checkboxes (high/medium/low) with `Save` / `All on` / `All off`.
+- Top-bar bulk actions: **Enable all** / **Disable all** RTSPS across every connected camera.
+- **Regenerate `camera_urls.json`** runs `get_streams.py` so the kiosk picks up changes.
+- **Restart kiosk (fresh layout)** backs up `viewport_config.json` and restarts the kiosk service so the layout chooser comes up blank.
+
+*Layout tab:*
+- Pick a grid (1×1, 2×1, 2×2, 3×3, or the named custom layouts), then assign a camera to each tile from a dropdown populated by `camera_urls.json`.
+- **Save & push config** writes `viewport_config.json` to the kiosk directory and (by default) restarts the kiosk to apply the new layout immediately. Same effect as walking through `layout_chooser.py` on the Pi, but from your laptop or phone.
+
+The dashboard discovers the kiosk's working directory via `systemctl show unifi-viewport.service`, so it correctly manages a kiosk installed in a separate directory from the dashboard itself.
 
 **Where to find it:**
 After `sudo ./install.sh --dashboard` (or `--all`), open `http://<pi-ip>:8080/` from any device on your LAN. The port is configurable via the `DASHBOARD_PORT` env var on the systemd unit.
 
-**Security note:** The dashboard binds to all interfaces and has no built-in authentication — anyone on your LAN can toggle camera streams. Run it behind a trusted network or front it with a reverse proxy + auth if you need to expose it more widely.
+**Security note:** The dashboard binds to all interfaces and has no built-in authentication — anyone on your LAN can toggle camera streams or restart your kiosk. Run it behind a trusted network or front it with a reverse proxy + auth if you need to expose it more widely.
+
+**Sudo permission:** "Restart kiosk" and "Save & push config" need permission to restart the kiosk service. `install.sh --dashboard` installs a sudoers drop-in (`/etc/sudoers.d/viewport-dashboard`) limited to `systemctl restart unifi-viewport.service` so the dashboard never gets broader sudo than it needs. If you set up the dashboard manually, run this once:
+
+```bash
+echo 'viewport ALL=(ALL) NOPASSWD: /bin/systemctl restart unifi-viewport.service' \
+  | sudo tee /etc/sudoers.d/viewport-dashboard
+sudo chmod 440 /etc/sudoers.d/viewport-dashboard
+```
 
 ---
 

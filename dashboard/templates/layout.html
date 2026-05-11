@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>UniFi Viewport — Layout</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Layout Manager</h1>
+      <nav class="tabs">
+        <a href="{{ url_for('index') }}" class="tab">Cameras</a>
+        <a href="{{ url_for('layout_page') }}" class="tab tab-active">Layout</a>
+      </nav>
+    </div>
+    <p class="muted">Kiosk dir: <code>{{ kiosk_root }}</code></p>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="flashes">
+        {% for category, message in messages %}<li class="flash flash-{{ category }}">{{ message }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <section class="panel">
+    <h2>1 · Choose a layout</h2>
+    <form method="get" action="{{ url_for('layout_page') }}" class="inline-form">
+      <select name="layout">
+        {% for opt in options %}
+          <option value="{{ opt }}" {% if opt == layout_name %}selected{% endif %}>{{ opt }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit">Load layout</button>
+    </form>
+
+    {% if current %}
+      <p class="muted">
+        Currently saved: <strong>{{ current.grid[0] }}×{{ current.grid[1] }}</strong> with {{ current.tiles|length }} tile(s).
+      </p>
+    {% else %}
+      <p class="muted">No layout currently saved.</p>
+    {% endif %}
+  </section>
+
+  {% if expanded %}
+  <section class="panel">
+    <h2>2 · Assign cameras to tiles ({{ layout_name }})</h2>
+
+    {% if not cameras %}
+      <p class="flash flash-err">
+        No cameras found in <code>camera_urls.json</code>. Go to the
+        <a href="{{ url_for('index') }}">Cameras tab</a> and click
+        "Regenerate camera_urls.json" first.
+      </p>
+    {% else %}
+      <form method="post" action="{{ url_for('save_layout') }}">
+        <input type="hidden" name="layout" value="{{ layout_name }}">
+
+        <div class="tile-grid"
+             style="grid-template-rows: repeat({{ expanded.grid[0] }}, minmax(80px, 1fr));
+                    grid-template-columns: repeat({{ expanded.grid[1] }}, 1fr);">
+          {% for tile in expanded.tiles %}
+            <div class="tile"
+                 style="grid-row: {{ tile.row + 1 }} / span {{ tile.h }};
+                        grid-column: {{ tile.col + 1 }} / span {{ tile.w }};">
+              <div class="tile-label">Tile {{ tile.row }},{{ tile.col }}{% if tile.w > 1 or tile.h > 1 %} ({{ tile.w }}×{{ tile.h }}){% endif %}</div>
+              <select name="tile_cam">
+                <option value="">— pick a camera —</option>
+                {% for cam in cameras %}
+                  <option value="{{ cam.name }}"
+                          {% if prefill.get(loop.index0) == cam.name %}selected{% endif %}>
+                    {{ cam.name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="save-row">
+          <label class="restart-toggle">
+            <input type="checkbox" name="restart" value="1" checked>
+            Restart kiosk after save
+          </label>
+          <button type="submit" class="primary">Save & push config</button>
+        </div>
+      </form>
+    {% endif %}
+  </section>
+  {% endif %}
+</body>
+</html>

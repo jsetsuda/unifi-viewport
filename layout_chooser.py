@@ -23,47 +23,11 @@ CONFIG_FILE   = os.path.join(SCRIPT_DIR, "viewport_config.json")
 FLAG_FILE     = os.path.join(SCRIPT_DIR, "layout_updated.flag")
 GET_STREAMS   = os.path.join(SCRIPT_DIR, "get_streams.py")
 
-CUSTOM_LAYOUTS = {
-    "2x1": {
-        "grid": [1, 2],
-        "tiles": [
-            {"row": 0, "col": 0, "w": 1, "h": 1},
-            {"row": 0, "col": 1, "w": 1, "h": 1},
-        ]
-    },
-    "3_custom": {
-        "grid": [2, 2],
-        "tiles": [
-            {"row": 0, "col": 0, "w": 1, "h": 2},
-            {"row": 0, "col": 1, "w": 1, "h": 1},
-            {"row": 1, "col": 1, "w": 1, "h": 1},
-        ]
-    },
-    "5_custom": {
-        "grid": [2, 3],
-        "tiles": [
-            {"row": 0, "col": 0, "w": 2, "h": 2},
-            {"row": 0, "col": 1, "w": 1, "h": 1},
-            {"row": 1, "col": 1, "w": 1, "h": 1},
-            {"row": 0, "col": 2, "w": 1, "h": 1},
-            {"row": 1, "col": 2, "w": 1, "h": 1},
-        ]
-    },
-    "6_custom": {
-        "grid": [3, 3],
-        "tiles": [
-            {"row": 0, "col": 0, "w": 2, "h": 2},
-            {"row": 0, "col": 2, "w": 1, "h": 1},
-            {"row": 1, "col": 2, "w": 1, "h": 1},
-            {"row": 2, "col": 0, "w": 1, "h": 1},
-            {"row": 2, "col": 1, "w": 1, "h": 1},
-            {"row": 2, "col": 2, "w": 1, "h": 1},
-        ]
-    },
-}
+# Layouts live in a shared module so the dashboard can offer the same set.
+import sys as _sys
+_sys.path.insert(0, SCRIPT_DIR)
+from layouts import ALL_OPTIONS, CUSTOM_LAYOUTS  # noqa: E402
 
-SIMPLE_LAYOUTS = ["1x1", "2x1", "2x2", "3x3"]
-ALL_OPTIONS    = SIMPLE_LAYOUTS + list(CUSTOM_LAYOUTS.keys())
 AUTO_TIMEOUT   = int(os.environ.get("VIEWPORT_AUTO_TIMEOUT", "20000"))  # ms; set to 1 to auto-skip
 
 def fetch_camera_list():

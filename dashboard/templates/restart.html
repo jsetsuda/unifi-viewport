@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Kiosk restart</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <h1>Restart kiosk (fresh layout)</h1>
+    <a href="{{ url_for('index') }}" class="back">← Back to cameras</a>
+  </header>
+
+  <p>Kiosk directory: <code>{{ kiosk_root }}</code></p>
+
+  {% if backup_path %}
+    <p class="flash flash-ok">Previous layout backed up to <code>{{ backup_path }}</code>.</p>
+  {% else %}
+    <p>No existing <code>viewport_config.json</code> to back up.</p>
+  {% endif %}
+
+  {% if returncode == 0 %}
+    <p class="flash flash-ok">Kiosk service restarted. The layout chooser should appear on the connected display within a few seconds.</p>
+  {% elif returncode is none %}
+    <p class="flash flash-err">Did not attempt restart — see error above.</p>
+  {% else %}
+    <p class="flash flash-err">
+      <strong>systemctl restart returned {{ returncode }}.</strong>
+      The most common cause is missing sudo permission for the dashboard user. Run this once on the Pi:
+    </p>
+    <pre>echo 'viewport ALL=(ALL) NOPASSWD: /bin/systemctl restart unifi-viewport.service' \
+  | sudo tee /etc/sudoers.d/viewport-dashboard
+sudo chmod 440 /etc/sudoers.d/viewport-dashboard</pre>
+    <p>Or run <code>sudo ./install.sh --dashboard</code> to set it up automatically.</p>
+  {% endif %}
+
+  {% if stdout %}<h2>stdout</h2><pre>{{ stdout }}</pre>{% endif %}
+  {% if stderr %}<h2>stderr</h2><pre>{{ stderr }}</pre>{% endif %}
+</body>
+</html>

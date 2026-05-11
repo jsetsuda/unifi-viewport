@@ -122,3 +122,71 @@ footer {
   font-size: 12px;
   text-align: center;
 }
+
+.tabs { display: flex; gap: 4px; margin-top: 8px; }
+.tab {
+  padding: 5px 14px;
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  border-radius: 4px 4px 0 0;
+  border: 1px solid transparent;
+}
+.tab:hover { color: var(--text); }
+.tab-active {
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-bottom-color: var(--panel);
+}
+
+.muted { color: var(--muted); font-size: 13px; }
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 18px 22px;
+  margin-bottom: 20px;
+}
+.panel h2 { margin-top: 0; font-size: 14px; letter-spacing: 0.04em; text-transform: uppercase; }
+
+.inline-form { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+
+select {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.tile-grid {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+  max-width: 720px;
+}
+.tile {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tile-label { font-size: 11px; color: var(--muted); font-family: ui-monospace, monospace; }
+.tile select { width: 100%; }
+
+.save-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.restart-toggle { display: flex; gap: 6px; font-size: 13px; color: var(--muted); cursor: pointer; }
