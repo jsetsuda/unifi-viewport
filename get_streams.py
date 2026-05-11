@@ -7,10 +7,10 @@ authenticated with an X-API-KEY header. Writes camera_urls.json in a shape
 that's drop-in compatible with the v1 downstream (layout_chooser.py, viewport.sh).
 
 Usage:
-  python3 get_streams.py             # write camera_urls.json
+  python3 get_streams.py             # write camera_urls.json (uses only cameras with RTSPS already on)
   python3 get_streams.py --list      # print JSON to stdout, no files written
   python3 get_streams.py --debug     # log API responses to stderr (for troubleshooting)
-  python3 get_streams.py --no-enable # do not create RTSPS streams; skip cameras that lack one
+  python3 get_streams.py --enable    # opt-in: turn on RTSPS for cameras that have it disabled
 """
 import argparse
 import json
@@ -155,8 +155,8 @@ def main():
     p = argparse.ArgumentParser(description="Fetch UniFi Protect camera RTSPS URLs (official API).")
     p.add_argument("--list", action="store_true", help="Print JSON to stdout, do not write files.")
     p.add_argument("--debug", action="store_true", help="Log raw API responses to stderr.")
-    p.add_argument("--no-enable", action="store_true",
-                   help="Skip cameras without an RTSPS stream instead of creating one.")
+    p.add_argument("--enable", action="store_true",
+                   help="Opt-in: enable RTSPS on cameras that have it disabled.")
     args = p.parse_args()
 
     session = requests.Session()
@@ -181,8 +181,8 @@ def main():
             continue
 
         rtsps = get_rtsps(session, cam_id, debug=args.debug)
-        # Treat "all qualities null" the same as missing — both mean RTSPS isn't enabled.
-        if not _has_any_url(rtsps) and not args.no_enable:
+        # "all qualities null" means RTSPS is disabled for this camera.
+        if not _has_any_url(rtsps) and args.enable:
             sys.stderr.write(f"[INFO] Enabling RTSPS streams for {cam_name}…\n")
             try:
                 rtsps = enable_rtsps(session, cam_id, debug=args.debug)
@@ -191,7 +191,7 @@ def main():
                                  f"{e.response.status_code} {e.response.text[:200]}\n")
                 continue
         if not _has_any_url(rtsps):
-            sys.stderr.write(f"[INFO] Skipping {cam_name}: no RTSPS stream available\n")
+            sys.stderr.write(f"[INFO] Skipping {cam_name}: RTSPS not enabled (pass --enable to turn on)\n")
             continue
 
         cam_streams = streams_for(cam, rtsps)
