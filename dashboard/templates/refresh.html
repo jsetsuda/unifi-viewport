@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Refreshing camera_urls.json…</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <h1>get_streams.py output</h1>
+    <a href="{{ url_for('index') }}" class="back">← Back to cameras</a>
+  </header>
+
+  <p>Exit code: <strong>{{ returncode }}</strong> ({{ "success" if returncode == 0 else "error" }})</p>
+
+  {% if stdout %}<h2>stdout</h2><pre>{{ stdout }}</pre>{% endif %}
+  {% if stderr %}<h2>stderr</h2><pre>{{ stderr }}</pre>{% endif %}
+</body>
+</html>

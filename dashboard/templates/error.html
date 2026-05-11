@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Dashboard error</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header><h1>Configuration error</h1></header>
+  <p class="flash flash-err">{{ message }}</p>
+  <p>Check the <code>.env</code> file at the project root and make sure <code>UFP_HOST</code> and <code>UFP_API_KEY</code> are set.</p>
+</body>
+</html>

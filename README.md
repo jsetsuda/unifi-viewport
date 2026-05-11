@@ -84,9 +84,15 @@ Run `install.sh` with one or more of these flags:
   * Installs and configures HDMI-CEC keepalive via `cec-utils`.
   * Ensures the TV remains powered on and responsive to CEC commands.
 
+* `--dashboard`
+
+  * Installs the camera-management web dashboard (Flask, default port 8080).
+  * Sets up a `unifi-viewport-dashboard.service` systemd unit and starts it.
+  * Lets you view cameras, toggle RTSPS qualities per camera, and regenerate `camera_urls.json` from a browser.
+
 * `--all`
 
-  * Shorthand for running `--pip`, `--gui`, and `--cec` together.
+  * Shorthand for running `--pip`, `--gui`, `--cec`, and `--dashboard` together.
 
 Example:
 
@@ -139,6 +145,23 @@ source venv/bin/activate   # skip if system-wide install
 After saving a layout, reboots will auto-launch the last configuration after a brief timeout.
 
 > **Note:** The first-run layout chooser is a GUI and requires a connected **mouse** to operate (touch input also works). The chooser only blocks first-time setup — subsequent reboots will skip past it automatically once a layout has been saved.
+
+---
+
+## Camera Management Dashboard (`--dashboard`)
+
+A small Flask web UI for managing cameras without using the Protect web app.
+
+**What it does:**
+- Lists every camera the API key can see, with model, MAC, and connection state.
+- Shows which RTSPS qualities (high/medium/low) are currently enabled per camera.
+- Toggle qualities on/off per camera with a single click — writes go straight to the Protect API.
+- "Regenerate `camera_urls.json`" button runs `get_streams.py` for you, so the kiosk picks up changes on the next layout-chooser cycle.
+
+**Where to find it:**
+After `sudo ./install.sh --dashboard` (or `--all`), open `http://<pi-ip>:8080/` from any device on your LAN. The port is configurable via the `DASHBOARD_PORT` env var on the systemd unit.
+
+**Security note:** The dashboard binds to all interfaces and has no built-in authentication — anyone on your LAN can toggle camera streams. Run it behind a trusted network or front it with a reverse proxy + auth if you need to expose it more widely.
 
 ---
 

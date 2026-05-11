@@ -12,11 +12,12 @@ usage() {
 Usage: $0 [OPTIONS]
 
 Options:
-  --pip       Set up Python virtualenv, deps, .env, and fetch camera list
-  --gui       Install GUI/display environment and prompt for .env
-  --cec       Install HDMI-CEC keepalive
-  --all       Run pip + gui + cec steps
-  -h, --help  Show this message
+  --pip        Set up Python virtualenv, deps, .env, and fetch camera list
+  --gui        Install GUI/display environment and prompt for .env
+  --cec        Install HDMI-CEC keepalive
+  --dashboard  Install the camera-management web dashboard (Flask, :8080)
+  --all        Run pip + gui + cec + dashboard steps
+  -h, --help   Show this message
 EOF
   exit 1
 }
@@ -25,21 +26,23 @@ EOF
 DO_PIP=false
 DO_GUI=false
 DO_CEC=false
+DO_DASHBOARD=false
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --pip) DO_PIP=true ;;
-    --gui) DO_GUI=true ;;
-    --cec) DO_CEC=true ;;
-    --all) DO_PIP=true; DO_GUI=true; DO_CEC=true ;;
-    -h|--help) usage ;;
+    --pip)       DO_PIP=true ;;
+    --gui)       DO_GUI=true ;;
+    --cec)       DO_CEC=true ;;
+    --dashboard) DO_DASHBOARD=true ;;
+    --all)       DO_PIP=true; DO_GUI=true; DO_CEC=true; DO_DASHBOARD=true ;;
+    -h|--help)   usage ;;
     *) echo "[ERROR] Unknown option: $1"; usage ;;
   esac
   shift
 done
 
 # If no flags provided, show help
-if ! $DO_PIP && ! $DO_GUI && ! $DO_CEC; then
+if ! $DO_PIP && ! $DO_GUI && ! $DO_CEC && ! $DO_DASHBOARD; then
   usage
 fi
 
@@ -213,6 +216,52 @@ if $DO_CEC; then
   echo
   echo "[STEP] HDMI-CEC keepalive →"
   sudo bash install-cec-keepalive.sh
+fi
+
+# ------------------------------------------------------------------------------
+# Section: camera-management dashboard (Flask, :8080)
+# ------------------------------------------------------------------------------
+if $DO_DASHBOARD; then
+  echo
+  echo "[STEP] Camera-management dashboard →"
+
+  # Make sure Flask is in the venv (already in requirements.txt; install if --pip wasn't run)
+  if [[ -f venv/bin/python3 ]]; then
+    venv/bin/pip install --quiet 'flask>=3.0.0'
+  else
+    echo "  [WARN] No venv/ found — run with --pip first, or the dashboard service will fail to start."
+  fi
+
+  prompt_env  # dashboard needs the same .env as get_streams.py
+
+  DASHBOARD_PORT="${DASHBOARD_PORT:-8080}"
+  INSTALL_DIR_DASH="$(pwd)"
+  SERVICE_USER_DASH=viewport
+
+  echo "  • Installing systemd service → /etc/systemd/system/unifi-viewport-dashboard.service"
+  sudo tee /etc/systemd/system/unifi-viewport-dashboard.service >/dev/null <<EOF
+[Unit]
+Description=UniFi Viewport Camera-Management Dashboard
+After=network.target
+
+[Service]
+User=${SERVICE_USER_DASH}
+WorkingDirectory=${INSTALL_DIR_DASH}
+Environment=DASHBOARD_PORT=${DASHBOARD_PORT}
+ExecStart=${INSTALL_DIR_DASH}/venv/bin/python3 -m dashboard.app
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+  sudo systemctl daemon-reload
+  sudo systemctl enable unifi-viewport-dashboard.service
+  sudo systemctl restart unifi-viewport-dashboard.service
+
+  IP_HINT=$(hostname -I 2>/dev/null | awk '{print $1}')
+  echo "  → Dashboard at http://${IP_HINT:-<pi-ip>}:${DASHBOARD_PORT}/"
 fi
 
 # ------------------------------------------------------------------------------

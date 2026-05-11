@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>UniFi Viewport — Cameras</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <h1>Camera Manager</h1>
+    <form action="{{ url_for('refresh_streams') }}" method="post" class="refresh-form">
+      <button type="submit" class="primary">Regenerate camera_urls.json</button>
+    </form>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="flashes">
+        {% for category, message in messages %}
+          <li class="flash flash-{{ category }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <table class="cameras">
+    <thead>
+      <tr>
+        <th>Camera</th>
+        <th>Model</th>
+        <th>State</th>
+        {% for q in qualities %}<th>{{ q.title() }}</th>{% endfor %}
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr class="state-{{ r.state|lower }}">
+        <td>
+          <div class="cam-name">{{ r.name }}</div>
+          <div class="cam-meta">{{ r.id }}{% if r.mac %} · {{ r.mac }}{% endif %}</div>
+        </td>
+        <td>{{ r.model }}</td>
+        <td><span class="badge badge-{{ r.state|lower }}">{{ r.state }}</span></td>
+        {% for q in qualities %}
+        <td class="q-cell">
+          <input type="checkbox" form="form-{{ r.id }}" name="qualities" value="{{ q }}"
+                 {% if r.enabled[q] %}checked{% endif %}
+                 {% if r.state != 'CONNECTED' %}disabled{% endif %}>
+        </td>
+        {% endfor %}
+        <td>
+          <button form="form-{{ r.id }}" type="submit"
+                  {% if r.state != 'CONNECTED' %}disabled title="Camera is offline"{% endif %}>Save</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {# Forms placed outside the table — referenced by `form=` attributes above #}
+  {% for r in rows %}
+    <form id="form-{{ r.id }}" action="{{ url_for('update_rtsps', camera_id=r.id) }}" method="post"></form>
+  {% endfor %}
+
+  <footer>
+    <p>{{ rows|length }} cameras · default = high+medium+low when enabling RTSPS for the first time.</p>
+  </footer>
+</body>
+</html>
