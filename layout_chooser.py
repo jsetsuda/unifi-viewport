@@ -24,6 +24,13 @@ FLAG_FILE     = os.path.join(SCRIPT_DIR, "layout_updated.flag")
 GET_STREAMS   = os.path.join(SCRIPT_DIR, "get_streams.py")
 
 CUSTOM_LAYOUTS = {
+    "2x1": {
+        "grid": [1, 2],
+        "tiles": [
+            {"row": 0, "col": 0, "w": 1, "h": 1},
+            {"row": 0, "col": 1, "w": 1, "h": 1},
+        ]
+    },
     "3_custom": {
         "grid": [2, 2],
         "tiles": [
@@ -60,16 +67,20 @@ ALL_OPTIONS    = SIMPLE_LAYOUTS + list(CUSTOM_LAYOUTS.keys())
 AUTO_TIMEOUT   = 20000  # milliseconds (20s)
 
 def fetch_camera_list():
+    """Populate camera_urls.json via get_streams.py --list."""
     try:
-        subprocess.run([
-            "python3", GET_STREAMS, "--list"
-        ], cwd=SCRIPT_DIR, check=True,
-           stdout=subprocess.DEVNULL,
-           stderr=subprocess.DEVNULL)
+        subprocess.run(
+            ["python3", GET_STREAMS, "--list"],
+            cwd=SCRIPT_DIR,
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
     except subprocess.CalledProcessError:
-        pass
+        pass  # non-fatal at startup
 
 def load_cameras():
+    """Return (names, url_map)."""
     if not os.path.isfile(CAMERA_FILE):
         return [], {}
     try:
@@ -84,7 +95,7 @@ class LayoutChooser(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Viewport Layout Chooser")
-        self.geometry("1200x600")
+        self.geometry("800x600")
         self.resizable(False, False)
 
         fetch_camera_list()
