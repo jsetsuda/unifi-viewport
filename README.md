@@ -106,7 +106,9 @@ Installs Python deps and GUI without CEC.
 
 ## 🎛 Configuring UniFi Protect
 
-This branch (`v2-api`) uses the **official UniFi Protect Integration API**, not the legacy reverse-engineered endpoints. Authentication is via an API key in the `X-API-KEY` header — no more storing a username/password on the Pi.
+This project uses the **official UniFi Protect Integration API**, not the legacy reverse-engineered endpoints. Authentication is via an API key in the `X-API-KEY` header — no more storing a username/password on the Pi.
+
+> The pre-API-migration code (RTSP via reverse-engineered `/proxy/protect/api/cameras` + username/password) is preserved on the [`v1-legacy`](https://github.com/jsetsuda/unifi-viewport/tree/v1-legacy) branch for reference, but is no longer maintained.
 
 ### 1. Generate an API key
 
