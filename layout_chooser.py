@@ -238,8 +238,10 @@ class LayoutChooser(tk.Tk):
             messagebox.showerror("Error", f"Failed to save config:\n{e}")
             return
 
-        messagebox.showinfo("Saved", "Configuration saved!\nLaunching streams…")
-        self.destroy()
+        msg = tk.Toplevel(self)
+        msg.title("Saved")
+        tk.Label(msg, text="Configuration saved!\nLaunching streams…", font=("Arial", 12)).pack(padx=30, pady=20)
+        self.after(3000, lambda: (msg.destroy(), self.destroy()))
 
 if __name__ == "__main__":
     LayoutChooser().mainloop()
