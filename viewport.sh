@@ -39,11 +39,22 @@ fi
 exec > >(tee -a "$LOG") 2>&1
 echo "[INFO] Starting viewport.sh at $(date)"
 
-# 4) Ensure network is up
-until ping -c1 192.168.5.10 &>/dev/null; do
-  echo "[INFO] Waiting for network..."
-  sleep 2
-done
+# 4) Ensure network is up — derive host from .env UFP_HOST
+PING_HOST=""
+if [[ -f "$ROOT/.env" ]]; then
+  UFP_HOST_RAW=$(grep -E '^UFP_HOST=' "$ROOT/.env" | head -1 | cut -d= -f2- | tr -d "'\"")
+  PING_HOST="${UFP_HOST_RAW#http://}"
+  PING_HOST="${PING_HOST#https://}"
+  PING_HOST="${PING_HOST%%[:/]*}"
+fi
+if [[ -z "$PING_HOST" ]]; then
+  echo "[WARN] Could not parse UFP_HOST from .env; skipping network wait"
+else
+  until ping -c1 "$PING_HOST" &>/dev/null; do
+    echo "[INFO] Waiting for network ($PING_HOST)..."
+    sleep 2
+  done
+fi
 
 # 5) Handle recent layout update flag
 if [[ -f "$FLAG" ]]; then

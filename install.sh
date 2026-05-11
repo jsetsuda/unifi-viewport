@@ -158,9 +158,17 @@ if $DO_GUI; then
     xserver-xorg \
     x11-utils \
     unclutter \
-    policykit-1 \
     lxappearance \
     gtk2-engines-pixbuf
+
+  # policykit-1 is a meta-package and may be missing on some distros;
+  # fall back to installing pkexec/polkitd (or the gnome flavor) directly.
+  if ! sudo apt install -y policykit-1; then
+    echo "  • policykit-1 meta-package unavailable; trying pkexec + polkitd"
+    sudo apt install -y pkexec polkitd 2>/dev/null \
+      || sudo apt install -y policykit-1-gnome 2>/dev/null \
+      || echo "  [WARN] Could not install polkit components automatically; install them manually if needed"
+  fi
 
   # Prompt for .env here as well
   prompt_env

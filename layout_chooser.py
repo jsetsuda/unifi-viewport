@@ -64,7 +64,7 @@ CUSTOM_LAYOUTS = {
 
 SIMPLE_LAYOUTS = ["1x1", "2x1", "2x2", "3x3"]
 ALL_OPTIONS    = SIMPLE_LAYOUTS + list(CUSTOM_LAYOUTS.keys())
-AUTO_TIMEOUT   = 20000  # milliseconds (20s)
+AUTO_TIMEOUT   = int(os.environ.get("VIEWPORT_AUTO_TIMEOUT", "20000"))  # ms; set to 1 to auto-skip
 
 def fetch_camera_list():
     """Populate camera_urls.json via get_streams.py --list."""

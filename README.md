@@ -1,21 +1,25 @@
 # UniFi RTSP Viewport for Raspberry Pi
 
-A lightweight Raspberry Pi–based viewport for displaying UniFi Protect RTSP/S streams in a tiled layout, with automatic resolution detection, health monitoring, and HDMI‑CEC support.
+A lightweight Raspberry Pi–based viewport for displaying UniFi Protect RTSP/S streams in a tiled layout, with automatic resolution detection, health monitoring, and HDMI-CEC support.
 
 ---
 
 ## 🧰 Initial Raspberry Pi Setup
 
-**Recommended OS:** Raspberry Pi OS Lite (64‑bit)
-Ideal for headless or kiosk‑style deployments.
+**Recommended OS:** Raspberry Pi OS (Full, 64-bit, with Desktop)
+The full image ships with LightDM and the X11 stack already wired up, which avoids hand-configuration of the GUI components the layout chooser depends on.
 
-### 1. Flash Raspberry Pi OS Lite
+> Raspberry Pi OS **Lite** can also work for advanced setups, but you will need to install and configure LightDM, X11, and a desktop manually. Most user-reported issues come from the Lite path.
 
-Use the [Raspberry Pi Imager](https://www.raspberrypi.com/software/) to install **Raspberry Pi OS Lite (64‑bit)**.
+### 1. Flash Raspberry Pi OS
+
+Use the [Raspberry Pi Imager](https://www.raspberrypi.com/software/) to install **Raspberry Pi OS (64-bit, with Desktop)**.
+
+> **Tip:** In the Imager's advanced options (gear/⚙ icon), set the default username to `viewport`. The installer and systemd service are written around that account, so SSH'ing in as `viewport` and running the install as that user is the smoothest path.
 
 ### 2. Log in via SSH or directly
 
-Configure hostname, timezone, Wi‑Fi, etc. via `raspi-config`:
+Configure hostname, timezone, Wi-Fi, etc. via `raspi-config`:
 
 ```bash
 sudo raspi-config
@@ -64,10 +68,10 @@ Run `install.sh` with one or more of these flags:
 
 * `--pip`
 
-  * Creates a Python 3 virtual environment in `./venv/`.
+  * Creates a Python 3 virtual environment in `./venv/`.
   * Installs Python dependencies (`python-dotenv`, `requests`, `psutil`, `uiprotect`, `Pillow`).
   * Prompts to configure `.env` with UniFi Protect credentials.
-  * Adds `.env` to `.gitignore` and marks entry‑point scripts executable.
+  * Adds `.env` to `.gitignore` and marks entry-point scripts executable.
 
 * `--gui`
 
@@ -77,7 +81,7 @@ Run `install.sh` with one or more of these flags:
 
 * `--cec`
 
-  * Installs and configures HDMI‑CEC keepalive via `cec-utils`.
+  * Installs and configures HDMI-CEC keepalive via `cec-utils`.
   * Ensures the TV remains powered on and responsive to CEC commands.
 
 * `--all`
@@ -87,7 +91,7 @@ Run `install.sh` with one or more of these flags:
 Example:
 
 ```bash
-sudo ./installmain.sh --pip --gui
+sudo ./install.sh --pip --gui
 ```
 
 Installs Python deps and GUI without CEC.
@@ -96,7 +100,7 @@ Installs Python deps and GUI without CEC.
 
 ## 🎛 Configuring UniFi Protect for RTSP
 
-1. In UniFi Protect → **Camera** → **Settings** → **Advanced**
+1. In UniFi Protect → **Camera** → **Settings** → **Advanced**
 2. Enable **H.264** RTSP (“High”, “Medium”, or “Low”).
 3. Avoid HEVC (H.265) unless your Pi can handle it.
 4. **Recording Settings** → **Encoding = Standard**.
@@ -115,11 +119,44 @@ python3 get_streams.py
 If autolaunch doesn’t occur (or you’re in virtualenv mode), manually fetch cameras and choose a layout:
 
 ```bash
-source venv/bin/activate   # skip if system‑wide install
+source venv/bin/activate   # skip if system-wide install
 ./layout_chooser.py
 ```
 
-After saving a layout, reboots will auto‑launch the last configuration after a brief timeout.
+After saving a layout, reboots will auto-launch the last configuration after a brief timeout.
+
+> **Note:** The first-run layout chooser is a GUI and requires a connected **mouse** to operate (touch input also works). The chooser only blocks first-time setup — subsequent reboots will skip past it automatically once a layout has been saved.
+
+---
+
+## Deployment Notes
+
+These are tips collected from running the project on real hardware.
+
+### Skip the layout chooser delay on reboot
+
+After your first successful run, the layout chooser waits 20 seconds before auto-loading the previous layout. To shorten or skip that wait, set `VIEWPORT_AUTO_TIMEOUT` (milliseconds) in the systemd unit:
+
+```bash
+sudo systemctl edit unifi-viewport.service
+```
+
+Then add:
+
+```ini
+[Service]
+Environment=VIEWPORT_AUTO_TIMEOUT=1
+```
+
+A value of `1` ms effectively bypasses the chooser entirely on every reboot.
+
+### `policykit-1` package errors during install
+
+Some Raspberry Pi OS variants no longer ship the `policykit-1` meta-package, which can cause the `--gui` install step to fail. `install.sh` now tries to fall back to `pkexec` + `polkitd` (or `policykit-1-gnome`) automatically. If you still hit issues, see the workaround discussion at [PJ-Singh-001/Cubic#389](https://github.com/PJ-Singh-001/Cubic/issues/389).
+
+### Network-wait host
+
+`viewport.sh` waits for the NVR to be reachable before launching streams. The host is parsed from `UFP_HOST` in `.env` — if that file is missing or malformed, the network wait is skipped with a warning. (Earlier versions of this script hard-coded an IP, which broke deployments on different networks.)
 
 ---
 
@@ -132,13 +169,6 @@ After saving a layout, reboots will auto‑launch the last configuration after a
 | `viewport.sh`           | Detects display resolution, launches MPV tiles, and starts the health monitor.              |
 | `monitor_streams.py`    | Periodically checks each stream’s health and restarts stalled streams.                      |
 | `install.sh`            | Unified installer for pip, GUI, and CEC components with command-line flags.                 |
-
-\----------------------- | ----------------------------------------------------------------------------------------------------------- |
-\| `layout_chooser.py`     | GUI for selecting grid size, assigning cameras to tiles, and saving `viewport_config.json`.               |
-\| `get_streams.py`        | Fetches UniFi Protect RTSP URLs and writes to `camera_urls.json`.                                         |
-\| `viewport.sh`           | Detects display resolution, launches MPV tiles, and starts the health monitor.                            |
-\| `monitor_streams.py`    | Periodically checks each stream’s health and restarts stalled streams.                                    |
-\| `install.sh`            | Unified installer for pip, GUI, and CEC components with command‑line flags.                               |
 
 ---
 
@@ -174,7 +204,7 @@ After saving a layout, reboots will auto‑launch the last configuration after a
 * **Resolution detection**:
   Ensure `xrandr` (X11) or `tvservice` (RPi) is installed.
 * **CEC issues**:
-  Verify `cec-utils` and that your TV supports HDMI‑CEC.
+  Verify `cec-utils` and that your TV supports HDMI-CEC.
 * **API errors**:
   Confirm `.env` credentials and network connectivity to your UniFi Protect controller.
 
