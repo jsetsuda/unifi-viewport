@@ -167,6 +167,8 @@ def detect_hwdec():
         return "--hwdec=v4l2m2m", ""
     if "raspberry pi 3" in text:
         return "--hwdec=v4l2m2m", ""
+    if "raspberry pi zero 2" in text:
+        return "--hwdec=v4l2m2m", ""
     if any(k in text for k in ("allwinner", "sun50i", "orange pi")):
         return "--hwdec=v4l2m2m-copy", "--opengl-es=yes"
     return "--hwdec=auto", ""
