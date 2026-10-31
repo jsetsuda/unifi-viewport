@@ -184,6 +184,9 @@ if $DO_GUI; then
     echo "viewport:viewport" | sudo chpasswd
   fi
 
+  # Hardware decode (cedrus/V4L2) and GPU access require these groups
+  sudo usermod -aG video,render viewport 2>/dev/null || true
+
   echo "  • Configuring LightDM autologin…"
   sudo mkdir -p /etc/lightdm/lightdm.conf.d
   sudo tee /etc/lightdm/lightdm.conf.d/50-viewport.conf >/dev/null <<EOF

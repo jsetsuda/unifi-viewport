@@ -184,7 +184,6 @@ for tile in "${TILES[@]}"; do
     --no-resume-playback \
     --no-cache \
     --demuxer-readahead-secs=1 \
-    --fps=24 \
     --vo=gpu $HWDEC $GPU_API \
     --title="${TITLE}" \
     --no-audio \

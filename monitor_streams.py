@@ -208,7 +208,6 @@ def launch(tile):
         "--no-resume-playback",
         "--no-cache",
         "--demuxer-readahead-secs=1",
-        "--fps=24",
         "--vo=gpu",
         "--no-audio",
         "--mute=yes",
