@@ -144,6 +144,8 @@ if [[ $MODEL == *"Raspberry Pi 5"* ]]; then
   HWDEC="--hwdec=v4l2m2m-copy"
 elif [[ $MODEL == *"Raspberry Pi 4"* ]]; then
   HWDEC="--hwdec=v4l2m2m"
+elif [[ $MODEL == *"Raspberry Pi 3"* ]]; then
+  HWDEC="--hwdec=v4l2m2m"
 elif grep -qiE "allwinner|sun50i|orange pi" <<<"$MODEL $COMPAT"; then
   HWDEC="--hwdec=v4l2m2m-copy"
   GPU_API="--opengl-es=yes"
