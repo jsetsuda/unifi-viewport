@@ -208,7 +208,7 @@ def launch(tile):
         "--video-sync=desync",
         "--framedrop=vo",
         "--rtsp-transport=tcp",
-        "--loop=inf",
+        "--network-timeout=15",
         "--no-resume-playback",
         "--no-cache",
         "--demuxer-readahead-secs=1",
@@ -216,7 +216,6 @@ def launch(tile):
         "--no-audio",
         "--mute=yes",
         "--ao=null",
-        "--keep-open=yes",
         f"--title={title}",
     ]
     if HWDEC_FLAG:

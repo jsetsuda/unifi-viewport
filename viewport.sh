@@ -184,7 +184,7 @@ for tile in "${TILES[@]}"; do
     --video-sync=desync \
     --framedrop=vo \
     --rtsp-transport=tcp \
-    --loop=inf \
+    --network-timeout=15 \
     --no-resume-playback \
     --no-cache \
     --demuxer-readahead-secs=1 \
@@ -193,7 +193,6 @@ for tile in "${TILES[@]}"; do
     --no-audio \
     --mute=yes \
     --ao=null \
-    --keep-open=yes \
     "$url" &
   sleep 0.2
 done
