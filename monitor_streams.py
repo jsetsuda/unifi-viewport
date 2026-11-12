@@ -143,6 +143,38 @@ def find_unexpected_tiles(cfg):
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             continue
 
+def detect_hwdec():
+    hwdec = os.environ.get("VIEWPORT_HWDEC")
+    gpu_api = os.environ.get("VIEWPORT_GPU_API", "")
+    if hwdec is not None:
+        return hwdec.strip(), (gpu_api or "").strip()
+    model = ""
+    try:
+        with open("/proc/device-tree/model", "rb") as f:
+            model = f.read().replace(b"\x00", b"").decode(errors="ignore")
+    except Exception:
+        pass
+    compat = ""
+    try:
+        with open("/proc/device-tree/compatible", "rb") as f:
+            compat = f.read().replace(b"\x00", b" ").decode(errors="ignore")
+    except Exception:
+        pass
+    text = (model + " " + compat).lower()
+    if "raspberry pi 5" in text:
+        return "--hwdec=v4l2m2m-copy", ""
+    if "raspberry pi 4" in text:
+        return "--hwdec=v4l2m2m", ""
+    if "raspberry pi 3" in text:
+        return "--hwdec=v4l2m2m", ""
+    if "raspberry pi zero 2" in text:
+        return "--hwdec=v4l2m2m", ""
+    if any(k in text for k in ("allwinner", "sun50i", "orange pi")):
+        return "--hwdec=v4l2m2m-copy", "--opengl-es=yes"
+    return "--hwdec=auto", ""
+
+HWDEC_FLAG, GPU_API_FLAG = detect_hwdec()
+
 def launch(tile):
     row, col = tile["row"], tile["col"]
     title = f"tile_{row}_{col}"
@@ -153,6 +185,8 @@ def launch(tile):
         return
     if now - last_restart.get(title, 0) < RESTART_COOLDOWN:
         return
+
+    url = re.sub(r"rtsps://([^:/]+):7441", r"rtsp://\1:7447", url)
 
     W, H = get_resolution()
     grid_rows, grid_cols = cfg.get("grid", [1, 1])
@@ -165,12 +199,31 @@ def launch(tile):
 
     cmd = [
         MPV_BIN,
+        "--really-quiet",
+        "--no-input-terminal",
         "--no-border",
         f"--geometry={ww}x{hh}+{x}+{y}",
+        "--profile=low-latency",
+        "--untimed",
+        "--video-sync=desync",
+        "--framedrop=vo",
+        "--rtsp-transport=tcp",
+        "--network-timeout=15",
+        "--no-resume-playback",
+        "--no-cache",
+        "--demuxer-readahead-secs=1",
+        "--vo=gpu",
+        "--no-audio",
+        "--mute=yes",
+        "--ao=null",
         f"--title={title}",
-        url
     ]
-    log(f"Restarting {title}")
+    if HWDEC_FLAG:
+        cmd.append(HWDEC_FLAG)
+    if GPU_API_FLAG:
+        cmd.append(GPU_API_FLAG)
+    cmd.append(url)
+    log(f"Restarting {title} (hwdec={HWDEC_FLAG or 'none'})")
     subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     last_restart[title] = now
 

@@ -138,12 +138,25 @@ echo "[INFO] Grid: ${ROWS}×${COLS}, tile: ${TW}×${TH}"
 
 # 14) HWDEC for Raspberry Pi 5
 MODEL=$(tr -d '\0' < /proc/device-tree/model 2>/dev/null || echo "")
+COMPAT=$(tr '\0' ' ' < /proc/device-tree/compatible 2>/dev/null || echo "")
+GPU_API=""
 if [[ $MODEL == *"Raspberry Pi 5"* ]]; then
   HWDEC="--hwdec=v4l2m2m-copy"
+elif [[ $MODEL == *"Raspberry Pi 4"* ]]; then
+  HWDEC="--hwdec=v4l2m2m"
+elif [[ $MODEL == *"Raspberry Pi 3"* ]]; then
+  HWDEC="--hwdec=v4l2m2m"
+elif [[ $MODEL == *"Raspberry Pi Zero 2"* ]]; then
+  HWDEC="--hwdec=v4l2m2m"
+elif grep -qiE "allwinner|sun50i|orange pi" <<<"$MODEL $COMPAT"; then
+  HWDEC="--hwdec=v4l2m2m-copy"
+  GPU_API="--opengl-es=yes"
 else
-  HWDEC=""
+  HWDEC="--hwdec=auto"
 fi
 echo "[INFO] HWDEC: ${HWDEC:-none}"
+export VIEWPORT_HWDEC="$HWDEC"
+export VIEWPORT_GPU_API="$GPU_API"
 
 # 15) Read tiles from config
 mapfile -t TILES < <($JQ_BIN -c '.tiles[]' "$CONFIG")
@@ -171,17 +184,15 @@ for tile in "${TILES[@]}"; do
     --video-sync=desync \
     --framedrop=vo \
     --rtsp-transport=tcp \
-    --loop=inf \
+    --network-timeout=15 \
     --no-resume-playback \
     --no-cache \
     --demuxer-readahead-secs=1 \
-    --fps=24 \
-    --vo=gpu $HWDEC \
+    --vo=gpu $HWDEC $GPU_API \
     --title="${TITLE}" \
     --no-audio \
     --mute=yes \
     --ao=null \
-    --keep-open=yes \
     "$url" &
   sleep 0.2
 done
